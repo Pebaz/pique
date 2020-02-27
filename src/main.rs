@@ -15,7 +15,7 @@ fn main() {
                 result = &result[&arg];
             }
     
-            println!("{}", result);
+            println!("{:#}", result);
         }
 
         else {
