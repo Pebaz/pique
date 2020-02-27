@@ -11,3 +11,4 @@ name = "pq"
 path = "src/main.rs"
 
 [dependencies]
+json = "0.12.1"
