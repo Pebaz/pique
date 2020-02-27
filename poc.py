@@ -1,5 +1,7 @@
 # To get JSON, run this command:
 # aws pinpoint phone-number-validate --region us-east-1 --number-validate-request PhoneNumber=525536747273 | python3 poc.py NumberValidateResponse
+# cat input.json | python3 poc.py "Things.[*].inventory.[1]"
+
 
 import sys, json
 
@@ -25,6 +27,9 @@ def drilldown(data, commands):
 
 
 data = json.loads(sys.stdin.read())
-result = drilldown(data, parse_commands(sys.argv[1]))
+if len(sys.argv) > 1:
+    result = drilldown(data, parse_commands(sys.argv[1]))
+else:
+    result = data
 
 print(json.dumps(result, indent=4))
