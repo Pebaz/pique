@@ -3,6 +3,10 @@
 # cat input.json | python3 poc.py "Things.[*].inventory.[1]"
 # aws logs describe-log-groups | python3 poc.py "logGroups.[*].logGroupName.(= '/pbz/test-log-group')"
 # Using [*] always creates an array. Can I use {} to build custom objects?
+# aws logs describe-log-groups | python3 poc.py "logGroups.[*].(> storedBytes 0).{logGroupName,storedBytes}"
+# Count: "logGroups.!count"
+# Ranges: "logGroups.[2:4]"
+# aws logs describe-log-groups | python3 poc.py "logGroups.[*].{logGroupName,storedBytes}.(> storedBytes 1000000)"
 
 
 import sys, json
@@ -30,8 +34,13 @@ def drilldown(data, commands):
             data = [drilldown(element, commands[i + 1:]) for element in data]
             break
 
+        elif not isinstance(cmd, int) and cmd.startswith('{'):
+            cmd = cmd[1:-1]  # Unwrap from {}
+            obj_keys = cmd.split(',')
+            data = {key : data[key] for key in obj_keys}
+
         # Logic Expression
-        elif cmd.startswith('='):
+        elif not isinstance(cmd, int) and cmd.startswith('='):
             op, comparison_key, arg = cmd.split()
 
             # Parse it into it's data type
@@ -44,6 +53,14 @@ def drilldown(data, commands):
                 return None
             
             #data = [drilldown(element, commands[i + 1:]) for element in data]
+
+        elif not isinstance(cmd, int) and cmd.startswith('>'):
+            op, comparison_key, arg = cmd.split()
+            arg = eval(arg)
+
+            if not (data[comparison_key] > arg):
+                return None
+        
         else:
             data = data[cmd]
     
