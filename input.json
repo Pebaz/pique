@@ -9,6 +9,10 @@
             ]
         },
         {
+            "name" : "Pebaz",
+            "inventory" : []
+        },
+        {
             "name" : "Protodip",
             "inventory" : [
                 "apple",

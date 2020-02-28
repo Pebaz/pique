@@ -2,6 +2,12 @@ use std::env;
 use std::io::{self, Read};
 use json;
 
+
+fn parse_commands() -> Vec<String> {
+    vec![]
+}
+
+
 fn main() {
     let stdin = io::stdin();
     let mut handle = stdin.lock();
