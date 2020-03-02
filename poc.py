@@ -8,6 +8,10 @@
 # Ranges: "logGroups.[2:4]"
 # aws logs describe-log-groups | python3 poc.py "logGroups.[*].{logGroupName,storedBytes}.(> storedBytes 1000000)"
 
+# Raw Python syntax now works: aws lambda list-functions | python3 poc.py "Functions.[*].(Timeout > 3).Timeout"
+
+"logGroups.[*].(name in [1, 2, 3])"
+"logGroups.[*].{logGroupName,storedBytes}.(storedBytes > 1000000)"
 
 import sys, json
 
@@ -21,8 +25,8 @@ def parse_commands(string):
                 cmd = int(cmd)
 
         # Logic expression
-        elif cmd.startswith('('):
-            cmd = cmd[1:-1]
+        #elif cmd.startswith('('):
+        #    cmd = cmd[1:-1]
         
         cmds.append(cmd)
     return cmds
@@ -33,6 +37,21 @@ def drilldown(data, commands):
         if cmd == '*':
             data = [drilldown(element, commands[i + 1:]) for element in data]
             break
+
+        elif not isinstance(cmd, int) and cmd.startswith('('):
+            "logGroups.[*].{logGroupName,storedBytes}.(storedBytes > 1000000)"
+            cmd = cmd[1:-1]
+            static_data = data.copy()
+            if not eval(cmd, {}, static_data):
+                return None
+            return drilldown([static_data], commands[i + 1:])
+            '''
+            data = [
+                drilldown(element, commands[i + 1:])
+                for element in data
+                if eval(cmd, static_data)
+            ]
+            '''
 
         elif not isinstance(cmd, int) and cmd.startswith('{'):
             cmd = cmd[1:-1]  # Unwrap from {}
