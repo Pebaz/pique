@@ -12,3 +12,4 @@ path = "src/main.rs"
 
 [dependencies]
 json = "0.12.1"
+rustpython_vm = { git = "https://github.com/rickyhan/RustPython.git", version = "*" }

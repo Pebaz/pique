@@ -1,6 +1,10 @@
+#[macro_use] extern crate rustpython_vm;
+
 use std::env;
 use std::io::{self, Read};
 use json;
+//use rustpython_compiler as compiler;
+//use rustpython_vm as vm;
 
 
 fn parse_commands() -> Vec<String> {
@@ -28,4 +32,6 @@ fn main() {
             println!("Error parsing JSON input");
         }
     }
+
+    
 }
