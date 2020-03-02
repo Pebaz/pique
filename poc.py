@@ -13,6 +13,8 @@
 "logGroups.[*].(name in [1, 2, 3])"
 "logGroups.[*].{logGroupName,storedBytes}.(storedBytes > 1000000)"
 
+"Things.[*].{foo,bar,baz:'chuzzle'}.(bar in 1, 2, 3)"
+
 import sys, json
 
 def parse_commands(string):
