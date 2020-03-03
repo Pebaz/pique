@@ -122,7 +122,8 @@ class Allovelle(Style):
     styles = {
         Name: '#f0a',
         #String: '#fff',
-        Number: '#fc4'
+        Number: '#fc4',
+        Keyword: '#f4a'
     }
 
 class Haelyon(Style):
@@ -139,7 +140,8 @@ class Wing(Style):
     styles = {
         Name: '#fc1',
         String: '#bbb',
-        Number: '#ddd'
+        #Number: '#fff',
+        Keyword: '#bbb'
     }
 
 class Spire(Style):
@@ -147,7 +149,8 @@ class Spire(Style):
     styles = {
         Name: '#bd2',
         String: '#fb1',
-        Number: '#1bf'
+        Number: '#1bf',
+        Keyword: '#f05'
     }
 
 formatted_json = json.dumps(result, indent=4)
@@ -160,7 +163,7 @@ if sys.stdout.isatty():
     print(highlight(
         formatted_json,
         lexers.JsonLexer(),
-        formatters.Terminal256Formatter(style=Haelyon)
+        formatters.Terminal256Formatter(style=Allovelle)
     ))
 else:
     print(formatted_json)
