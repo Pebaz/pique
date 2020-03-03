@@ -96,10 +96,30 @@ if len(sys.argv) > 1:
 else:
     result = data
 
+
+from pygments.style import Style
+from pygments.token import *
+
+class IcyKiss(Style):
+    default_style = ''
+    styles = {
+        Name: '#b0b',
+        String: '#7bc',
+        Number: '#07d',
+    }
+
+class Python3(Style):
+    default_style = ''
+    styles = {
+        Name: '#07e',
+        String: '#fc4',
+        Number: '#4cf'
+    }
+
 formatted_json = json.dumps(result, indent=4)
 from pygments import highlight, lexers, formatters
 print(highlight(
     formatted_json,
     lexers.JsonLexer(),
-    formatters.TerminalFormatter()
+    formatters.Terminal256Formatter(style=Python3)
 ))
