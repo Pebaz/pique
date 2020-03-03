@@ -1,0 +1,11 @@
+{
+    "string" : "Hello World",
+    "integer" : 1024,
+    "array" : [1, 2],
+    "boolean" : true,
+    "object" : {
+        "key1" : "val1",
+        "key2" : 2,
+        "key3" : null
+    }
+}

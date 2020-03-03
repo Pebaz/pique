@@ -120,9 +120,18 @@ class Python3(Style):
 class Allovelle(Style):
     default_style = ''
     styles = {
-        Name: '#07c',
-        String: '#fc4',
-        Number: '#4cf'
+        Name: '#f0a',
+        #String: '#fff',
+        Number: '#fc4'
+    }
+
+class Haelyon(Style):
+    default_style = ''
+    styles = {
+        Name: '#39b',
+        String: '#3ab',
+        Number: '#f05',
+        Keyword: '#888'
     }
 
 class Wing(Style):
@@ -151,7 +160,7 @@ if sys.stdout.isatty():
     print(highlight(
         formatted_json,
         lexers.JsonLexer(),
-        formatters.Terminal256Formatter(style=Allovelle)
+        formatters.Terminal256Formatter(style=Haelyon)
     ))
 else:
     print(formatted_json)
