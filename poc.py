@@ -104,9 +104,10 @@ from pygments.token import *
 class IcyKiss(Style):
     default_style = ''
     styles = {
-        Name: '#b0b',
-        String: '#7bc',
+        Name: '#b2b',
+        String: '#7bd',
         Number: '#07d',
+        Keyword: 'bold #b0b'
     }
 
 class Python3(Style):
@@ -114,7 +115,8 @@ class Python3(Style):
     styles = {
         Name: '#07c',
         String: '#fc4',
-        Number: '#4cf'
+        Number: '#4cf',
+        Keyword: 'bold #fc4'
     }
 
 class Allovelle(Style):
@@ -123,7 +125,7 @@ class Allovelle(Style):
         Name: '#f0a',
         #String: '#fff',
         Number: '#fc4',
-        Keyword: '#f4a'
+        Keyword: 'bold #f4a'
     }
 
 class Haelyon(Style):
@@ -132,7 +134,7 @@ class Haelyon(Style):
         Name: '#39b',
         String: '#3ab',
         Number: '#f05',
-        Keyword: '#888'
+        Keyword: 'bold #888'
     }
 
 class Wing(Style):
@@ -141,7 +143,7 @@ class Wing(Style):
         Name: '#fc1',
         String: '#bbb',
         #Number: '#fff',
-        Keyword: '#bbb'
+        Keyword: 'bold #bbb'
     }
 
 class Spire(Style):
@@ -150,7 +152,7 @@ class Spire(Style):
         Name: '#bd2',
         String: '#fb1',
         Number: '#1bf',
-        Keyword: '#f05'
+        Keyword: 'bold #f05'
     }
 
 formatted_json = json.dumps(result, indent=4)
@@ -163,7 +165,7 @@ if sys.stdout.isatty():
     print(highlight(
         formatted_json,
         lexers.JsonLexer(),
-        formatters.Terminal256Formatter(style=Allovelle)
+        formatters.Terminal256Formatter(style=Spire)
     ))
 else:
     print(formatted_json)
