@@ -100,6 +100,7 @@ else:
 from pygments.style import Style
 from pygments.token import *
 
+# http://www.1728.org/colrchr6.htm
 class IcyKiss(Style):
     default_style = ''
     styles = {
@@ -116,10 +117,41 @@ class Python3(Style):
         Number: '#4cf'
     }
 
+class Allovelle(Style):
+    default_style = ''
+    styles = {
+        Name: '#07c',
+        String: '#fc4',
+        Number: '#4cf'
+    }
+
+class Wing(Style):
+    default_style = ''
+    styles = {
+        Name: '#fc1',
+        String: '#bbb',
+        Number: '#ddd'
+    }
+
+class Spire(Style):
+    default_style = ''
+    styles = {
+        Name: '#bd2',
+        String: '#fb1',
+        Number: '#1bf'
+    }
+
 formatted_json = json.dumps(result, indent=4)
+
 from pygments import highlight, lexers, formatters
-print(highlight(
-    formatted_json,
-    lexers.JsonLexer(),
-    formatters.Terminal256Formatter(style=Python3)
-))
+import sys
+
+# If in pipe, don't print console colors, just print text
+if sys.stdout.isatty():
+    print(highlight(
+        formatted_json,
+        lexers.JsonLexer(),
+        formatters.Terminal256Formatter(style=Allovelle)
+    ))
+else:
+    print(formatted_json)
