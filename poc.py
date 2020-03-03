@@ -165,7 +165,7 @@ if sys.stdout.isatty():
     print(highlight(
         formatted_json,
         lexers.JsonLexer(),
-        formatters.Terminal256Formatter(style=Spire)
+        formatters.Terminal256Formatter(style=Python3)
     ))
 else:
     print(formatted_json)
