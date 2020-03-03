@@ -96,76 +96,18 @@ if len(sys.argv) > 1:
 else:
     result = data
 
-
-from pygments.style import Style
-from pygments.token import *
-
-# http://www.1728.org/colrchr6.htm
-class IcyKiss(Style):
-    default_style = ''
-    styles = {
-        Name: '#b2b',
-        String: '#7bd',
-        Number: '#07d',
-        Keyword: 'bold #b0b'
-    }
-
-class Python3(Style):
-    default_style = ''
-    styles = {
-        Name: '#07c',
-        String: '#fc4',
-        Number: '#4cf',
-        Keyword: 'bold #fc4'
-    }
-
-class Allovelle(Style):
-    default_style = ''
-    styles = {
-        Name: '#f0a',
-        #String: '#fff',
-        Number: '#fc4',
-        Keyword: 'bold #f4a'
-    }
-
-class Haelyon(Style):
-    default_style = ''
-    styles = {
-        Name: '#39b',
-        String: '#3ab',
-        Number: '#f05',
-        Keyword: 'bold #888'
-    }
-
-class Wing(Style):
-    default_style = ''
-    styles = {
-        Name: '#fc1',
-        String: '#bbb',
-        #Number: '#fff',
-        Keyword: 'bold #bbb'
-    }
-
-class Spire(Style):
-    default_style = ''
-    styles = {
-        Name: '#bd2',
-        String: '#fb1',
-        Number: '#1bf',
-        Keyword: 'bold #f05'
-    }
-
 formatted_json = json.dumps(result, indent=4)
-
-from pygments import highlight, lexers, formatters
-import sys
 
 # If in pipe, don't print console colors, just print text
 if sys.stdout.isatty():
+    from pygments import highlight
+    from pygments.lexers import JsonLexer
+    from pygments.formatters import Terminal256Formatter
+    from pique.themes import Python3
     print(highlight(
         formatted_json,
-        lexers.JsonLexer(),
-        formatters.Terminal256Formatter(style=Python3)
+        JsonLexer(),
+        Terminal256Formatter(style=Python3)
     ))
 else:
     print(formatted_json)
