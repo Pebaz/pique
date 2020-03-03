@@ -96,7 +96,7 @@ if len(sys.argv) > 1:
 else:
     result = data
 
-formatted_json = json.dumps(result, indent=4).encode()
+formatted_json = json.dumps(result, indent=4)
 from pygments import highlight, lexers, formatters
 print(highlight(
     formatted_json,
