@@ -98,5 +98,8 @@ else:
 
 formatted_json = json.dumps(result, indent=4).encode()
 from pygments import highlight, lexers, formatters
-colorful_json = highlight(formatted_json, lexers.JsonLexer(), formatters.TerminalFormatter())
-print(colorful_json)
+print(highlight(
+    formatted_json,
+    lexers.JsonLexer(),
+    formatters.TerminalFormatter()
+))
