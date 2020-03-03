@@ -111,7 +111,7 @@ class IcyKiss(Style):
 class Python3(Style):
     default_style = ''
     styles = {
-        Name: '#07e',
+        Name: '#07c',
         String: '#fc4',
         Number: '#4cf'
     }
