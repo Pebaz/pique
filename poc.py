@@ -12,6 +12,7 @@
 
 "logGroups.[*].(name in [1, 2, 3])"
 "logGroups.[*].{logGroupName,storedBytes}.(storedBytes > 1000000)"
+"logGroups.[*].(storedBytes > 1000000).{logGroupName,storedBytes}"
 
 "Things.[*].{foo,bar,baz:'chuzzle'}.(bar in 1, 2, 3)"
 
