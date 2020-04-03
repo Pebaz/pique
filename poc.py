@@ -91,24 +91,28 @@ def drilldown(data, commands):
     return data
 
 
-data = json.loads(sys.stdin.read())
-if len(sys.argv) > 1:
-    result = drilldown(data, parse_commands(sys.argv[1]))
-else:
-    result = data
+def main(args=[]):
+    data = json.loads(sys.stdin.read())
+    if len(sys.argv) > 1:
+        result = drilldown(data, parse_commands(sys.argv[1]))
+    else:
+        result = data
 
-formatted_json = json.dumps(result, indent=4)
+    formatted_json = json.dumps(result, indent=4)
 
-# If in pipe, don't print console colors, just print text
-if sys.stdout.isatty():
-    from pygments import highlight
-    from pygments.lexers import JsonLexer
-    from pygments.formatters import Terminal256Formatter
-    from pique.themes import Python3
-    print(highlight(
-        formatted_json,
-        JsonLexer(),
-        Terminal256Formatter(style=Python3)
-    ))
-else:
-    print(formatted_json)
+    # If in pipe, don't print console colors, just print text
+    if sys.stdout.isatty():
+        from pygments import highlight
+        from pygments.lexers import JsonLexer
+        from pygments.formatters import Terminal256Formatter
+        from pique.themes import Python3
+        print(highlight(
+            formatted_json,
+            JsonLexer(),
+            Terminal256Formatter(style=Python3)
+        ))
+    else:
+        print(formatted_json)
+
+if __name__ == '__main__':
+    main(sys.argv)
