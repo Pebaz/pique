@@ -101,7 +101,9 @@ def main(args=[]):
     formatted_json = json.dumps(result, indent=4)
 
     # If in pipe, don't print console colors, just print text
-    if sys.stdout.isatty():
+    # This doesn't work when installed with Pip...
+    #if sys.stdout.isatty():
+    if True:  # --no-color not in args
         from pygments import highlight
         from pygments.lexers import JsonLexer
         from pygments.formatters import Terminal256Formatter
