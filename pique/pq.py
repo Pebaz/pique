@@ -1,4 +1,36 @@
 """
+logGroups.[*].(name in [1, 2, 3])
+logGroups.[*].{logGroupName,storedBytes}.(storedBytes > 1000000)
+logGroups.[*].(storedBytes > 1000000).{logGroupName,storedBytes}
+Things.[*].{foo,bar,baz:'chuzzle'}.(bar in 1, 2, 3)
+
+sum()
+
+builtin_func3()
+
+logGroups.(sort(IT))
+
+People.(len(IT)) ->
+12
+
+Person.(len(IT.name)) ->
+23
+
+{"name" : "Pebaz"}
+Person.(assign(name, name * 2)) ->
+{
+    "name": "PebazPebaz"
+}
+
+[1, 2, 3, 4]
+Array.(len(IT)) ->
+4
+
+[1, 2, 3, 4]
+Array.{"len" : len(IT)} ->
+{
+    "len": 4
+}
 """
 
 # NOTE: CREATE AN assign() FUNCTION THAT CAN ASSIGN WITHIN AN EXPRESSION
