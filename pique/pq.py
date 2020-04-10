@@ -31,6 +31,11 @@ Array.{"len" : len(IT)} ->
 {
     "len": 4
 }
+
+Support Slice Objects:
+Array.foo.[1:-3:2]
+
+someobject[slice(*("[1:-3:2]".split(':')))]
 """
 
 # NOTE: CREATE AN assign() FUNCTION THAT CAN ASSIGN WITHIN AN EXPRESSION
