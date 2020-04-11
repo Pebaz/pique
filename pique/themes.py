@@ -65,6 +65,16 @@ class Spire(Style):
         Keyword: 'bold #f05'
     }
 
+
+class Cuttlefish(Style):
+    default_style = ''
+    styles = {
+        Name: '#603',
+        String: '#fc0',
+        Number: '#fff',
+        Keyword: 'bold #b07'
+    }
+
 THEMES = [
     Python3,
     IcyKiss,
