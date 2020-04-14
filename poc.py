@@ -103,6 +103,9 @@ def main(args=[]):
     # If in pipe, don't print console colors, just print text
     # --no-color not in args
     if sys.stdout.isatty():
+        if sys.platform == 'win32':
+            import colorama
+            colorama.init()
         from pygments import highlight
         from pygments.lexers import JsonLexer
         from pygments.formatters import Terminal256Formatter
