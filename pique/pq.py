@@ -13,11 +13,23 @@ logGroups.(sort(IT))
 People.(len(IT)) ->
 12
 
+
+# -----------
+# THIS IS WRONG:
 Person.(len(IT.name)) ->
 23
 
+# IT SHOULD BE:
+Person.(len(name)) ->
+23
+# Because the `IT` should only be used for the toplevel object, not keys
+Person.Contacts.(sort(IT))
+
+# -----------
+
 {"name" : "Pebaz"}
-Person.(assign(name, name * 2)) ->
+Person.(assign(name, name * 2)) ->  ALSO: Person.{"name" : name * 2}
+    <- "name" is there because `name` is bound to the object key
 {
     "name": "PebazPebaz"
 }
@@ -36,14 +48,20 @@ Support Slice Objects:
 Array.foo.[1:-3:2]
 
 someobject[slice(*("[1:-3:2]".split(':')))]
+
+
+[integer] (Python) {Python, Pyhon : Python}
+
+( print( "))))" ) ).this.[0].not.valid.python.{}
 """
+
 
 # NOTE: CREATE AN assign() FUNCTION THAT CAN ASSIGN WITHIN AN EXPRESSION
 # NOTE: USE A STDLIB FUNCTION TO PARSE EXPRESSIONS FOR PROPER SYNTAX.
 # NOTE: DON'T USE A STATE MACHINE. MAKE PASSES FOR EACH PAREN COMBO
 # NOTE: IF YOU COME TO A DOT AND THE PAREN IS MATCHED, ITS DONE.
 
-import sys, json
+import sys, json, ast
 from pique.cli import parser
 
 
@@ -158,6 +176,36 @@ def main(args: list=[]) -> int:
 
     print(cli)
     print(parse_query_string(cli.query))
+
+    return 0
+
+
+def is_valid_python_code(code: str) -> bool:
+    try:
+        ast.parse(code)
+        return True
+    except SyntaxError:
+        return False
+
+
+def main(args):
+    query = '( print( "))))".strip() ) )' #.this.[0].not.valid.python.{}'
+    query = '(a.b.c)'
+
+    print('Input string:', repr(query))
+    
+    paren = ''
+
+    for i in query[1:]:  # We are forcing a PAREN state right now
+        if i == ')':
+            if is_valid_python_code(paren.strip()):
+                paren = paren.strip()  # Whitespace could be part of a string
+                print(paren)  # Switch to the next state.
+            else:
+                paren += i
+        else:
+            paren += i
+
 
     return 0
 
