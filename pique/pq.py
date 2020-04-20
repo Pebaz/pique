@@ -190,22 +190,48 @@ def is_valid_python_code(code: str) -> bool:
 
 def main(args):
     query = '( print( "))))".strip() ) )' #.this.[0].not.valid.python.{}'
-    query = '(a.b.c)'
+    query = '(a.b.c).(efghijk).(lm().nop())'
 
-    print('Input string:', repr(query))
+    # print('Input string:', repr(query))
     
-    paren = ''
+    # paren = ''
 
-    for i in query[1:]:  # We are forcing a PAREN state right now
-        if i == ')':
-            if is_valid_python_code(paren.strip()):
-                paren = paren.strip()  # Whitespace could be part of a string
-                print(paren)  # Switch to the next state.
+    # for i in query[1:]:  # We are forcing a PAREN state right now
+    #     if i == ')' and is_valid_python_code(paren.strip()):
+    #         paren = paren.strip()  # Whitespace could be part of a string
+    #         print(paren)  # Switch to the next state.
+    #         # assert <next char> == '.'
+    #     else:
+    #         paren += i
+
+    print('---------------------')
+
+    DOT, PAREN = 'DOT PAREN'.split()
+    commands = []
+    state = DOT
+    paren_buf = ''
+    for i in query:
+        #print(state)
+        if state == DOT:
+            #print('->', DOT)
+            if i == '.':
+                continue
+            elif i == '(':
+                state = PAREN
             else:
-                paren += i
-        else:
-            paren += i
+                raise Exception(f'Should never get here: i = {i}')
 
+        elif state == PAREN:
+            #print('->', PAREN, paren_buf)
+            if i == ')' and is_valid_python_code(paren_buf.strip()):
+                commands.append(f'<PAREN: {repr(paren_buf.strip())}>')
+                paren_buf = ''
+                state = DOT
+            else:
+                paren_buf += i
+
+    print(paren_buf)
+    print(commands)
 
     return 0
 
