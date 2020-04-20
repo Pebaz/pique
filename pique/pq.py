@@ -190,7 +190,7 @@ def is_valid_python_code(code: str) -> bool:
 
 def main(args):
     query = '( print( "))))".strip() ) )' #.this.[0].not.valid.python.{}'
-    query = '(a.b.c).(efghijk).(lm().nop())'
+    query = '(a.b.c).(lm().nop()).().[-1].[*].[1:-1]'
 
     # print('Input string:', repr(query))
     
@@ -206,7 +206,7 @@ def main(args):
 
     print('---------------------')
 
-    DOT, PAREN = 'DOT PAREN'.split()
+    DOT, PAREN, SQUARE = 'DOT PAREN SQUARE'.split()
     commands = []
     state = DOT
     paren_buf = ''
@@ -218,6 +218,8 @@ def main(args):
                 continue
             elif i == '(':
                 state = PAREN
+            elif i == '[':
+                state = SQUARE
             else:
                 raise Exception(f'Should never get here: i = {i}')
 
@@ -227,6 +229,26 @@ def main(args):
                 commands.append(f'<PAREN: {repr(paren_buf.strip())}>')
                 paren_buf = ''
                 state = DOT
+            else:
+                paren_buf += i
+
+        elif state == SQUARE:
+            stripped = paren_buf.strip()
+            if i == ']':
+                if (is_valid_python_code(stripped) or stripped == '*'):
+                    commands.append(f'<SQUARE: {repr(stripped)}>')
+                    paren_buf = ''
+                    state = DOT
+                elif ':' in stripped:
+                    try:
+                        s = slice(*map(int, stripped.split(':')))
+                        commands.append(f'<SQUARE: {repr(s)}>')
+                        paren_buf = ''
+                        state = DOT
+                    except:
+                        raise Exception('Invalid Syntax')
+                else:
+                    raise Exception('Invalid Syntax')
             else:
                 paren_buf += i
 
