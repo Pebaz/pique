@@ -77,6 +77,12 @@ class BuildObject(Query):
 class Index(Query):
     "Index an object or an array"
 
+    def __init__(self, source):
+        if ':' in source:
+            index = slice(*map(int, source.split(':')))
+        else:
+            index = int(source)
+
 class Expression(Query):
     "Query an object using a Python expression"
 
@@ -190,7 +196,7 @@ def is_valid_python_code(code: str) -> bool:
 
 def main(args):
     query = '( print( "))))".strip() ) )' #.this.[0].not.valid.python.{}'
-    query = '(a.b.c).(lm().nop()).().[-1].[*].[1:-1]'
+    query = '(a.b.c).(lm().nop()).().[-1].[*].[1:-1].{foo}.{foo,bar}.{"whoa" : {"name":"Pebaz"}}.{foo : 123, bar}'
 
     # print('Input string:', repr(query))
     
@@ -205,11 +211,13 @@ def main(args):
     #         paren += i
 
     print('---------------------')
+    print(query)
 
-    DOT, PAREN, SQUARE = 'DOT PAREN SQUARE'.split()
+    DOT, PAREN, SQUARE, BRACE = 'DOT PAREN SQUARE BRACE'.split()
     commands = []
     state = DOT
     paren_buf = ''
+    brace_key_list = []
     for i in query:
         #print(state)
         if state == DOT:
@@ -220,6 +228,8 @@ def main(args):
                 state = PAREN
             elif i == '[':
                 state = SQUARE
+            elif i == '{':
+                state = BRACE
             else:
                 raise Exception(f'Should never get here: i = {i}')
 
@@ -241,8 +251,7 @@ def main(args):
                     state = DOT
                 elif ':' in stripped:
                     try:
-                        s = slice(*map(int, stripped.split(':')))
-                        commands.append(f'<SQUARE: {repr(s)}>')
+                        commands.append(f'<SQUARE: {repr(stripped)}>')
                         paren_buf = ''
                         state = DOT
                     except:
@@ -252,8 +261,25 @@ def main(args):
             else:
                 paren_buf += i
 
+        elif state == BRACE:
+            if i in '},:' and is_valid_python_code(paren_buf.strip()):
+                brace_key_list.append(paren_buf.strip())
+                paren_buf = ''
+                if i == ':':
+                    brace_key_list.append(':')
+                elif i == '}':
+                    commands.append(f'<BRACE: {repr(brace_key_list)}>')
+                    brace_key_list.clear()
+                    state = DOT
+            else:
+                paren_buf += i
+
+
     print(paren_buf)
-    print(commands)
+    print('[')
+    for c in commands:
+        print('   ', c)
+    print(']')
 
     return 0
 
