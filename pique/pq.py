@@ -67,7 +67,12 @@ from pique.cli import parser
 
 class Query:
     "Base class for all queries"
+    def __init__(self, source):
+        self.source = source
 
+    def __str__(self):
+        return f'<{self.__class__.__name__}: {repr(self.source)}>'
+        
 class SelectKey(Query):  # some-key | `some-key` | some key
     "Narrow down data"
 
@@ -78,8 +83,11 @@ class Index(Query):  # []
     "Index an object or an array"
 
     def __init__(self, source):
+        Query.__init__(self, source)
         if ':' in source:
             index = slice(*map(int, source.split(':')))
+        elif source == '*':
+            index = source
         else:
             index = int(source)
 
@@ -87,81 +95,91 @@ class Expression(Query):  # ()
     "Query an object using a Python expression"
 
 
-def parse_query_string(query_string: str) -> list:
+def parse_query_string(query: str) -> list:
     "Parses out each query string into its own string"
 
-    # "logGroups.[*].(storedBytes.foo.bar > 1000000).{logGroupName,storedBytes}"
+    DOT, PAREN, SQUARE, BRACE, KEY = 'DOT PAREN SQUARE BRACE KEY'.split()
+    commands = []
+    state = DOT
+    buffer = ''
+    brace_key_list = []
+    query_it = iter(query)
 
-    print()
-    print(query_string)
-    print()
-
-    query_string += '.'
-
-    def choose_state(char):
-        state_map = {
-            '[' : 'index',
-            '{' : 'build',
-            '(' : 'query'
-        }
-        if char in state_map:
-            return state_map[char]
-        else:
-            return 'select'
-
-    state = choose_state(query_string[0])
-    stack = []
-    groups = []
-    active_brace = False
-    index = 0
-
-    opposite = {
-        '[' : ']',
-        '(' : ')',
-        '{' : '}',
-        ']' : '[',
-        '}' : '{',
-        ')' : '('
-    }
-
-    for i in range(1, len(query_string)):
-        char = query_string[i]
-
-        # Handle EOL and group submission, regardless of state
-        if char == '.' and not stack:
-            groups.append(query_string[index:i])
-            index = i + 1
-            if i < len(query_string) - 1:
-                state = choose_state(query_string[i + 1])
-            continue
-
-        elif char in '[{(':
-            # First ever brace
-            if not stack:
-                # May be able to change to: stack = ['(', ')']
-                stack.append(char)
-
-            # Matching brace
-            elif stack[-1] == opposite[char]:
-                stack.append(char)
-
+    for i in query_it:
+        if state == DOT:
+            if i == '.':
+                continue
+            elif i == '(':
+                state = PAREN
+            elif i == '[':
+                state = SQUARE
+            elif i == '{':
+                state = BRACE
             else:
-                pass
+                buffer += i
+                state = KEY
 
-        elif char in ']})':
-            if stack[-1] in '[{(':
-                stack.pop()
-
-            elif stack[-1] == opposite[char]:
-                stack.pop()
-
+        elif state == PAREN:
+            if i == ')' and is_valid_python_code(buffer.strip()):
+                #commands.append(f'<PAREN: {repr(buffer.strip())}>')
+                commands.append(Expression(buffer.strip()))
+                buffer = ''
+                state = DOT
             else:
-                pass
+                buffer += i
 
-    if stack:
-        "Something went wrong..."
+        elif state == SQUARE:
+            stripped = buffer.strip()
+            if i == ']':
+                if (is_valid_python_code(stripped) or stripped == '*'):
+                    #commands.append(f'<SQUARE: {repr(stripped)}>')
+                    commands.append(Index(stripped))
+                    buffer = ''
+                    state = DOT
+                elif ':' in stripped:
+                    try:
+                        #commands.append(f'<SQUARE: {repr(stripped)}>')
+                        commands.append(Index(stripped))
+                        buffer = ''
+                        state = DOT
+                    except:
+                        raise Exception('Invalid Syntax')
+                else:
+                    raise Exception('Invalid Syntax')
+            else:
+                buffer += i
 
-    return groups
+        elif state == BRACE:
+            if i in '},:' and is_valid_python_code(buffer.strip()):
+                brace_key_list.append(buffer.strip())
+                buffer = ''
+                if i == ':':
+                    brace_key_list.append(':')
+                elif i == '}':
+                    #commands.append(f'<BRACE: {repr(brace_key_list)}>')
+                    commands.append(BuildObject(brace_key_list[:]))
+                    brace_key_list.clear()
+                    state = DOT
+            else:
+                buffer += i
+
+        elif state == KEY:
+            if i == '\\':
+                buffer += next(query_it)
+            elif i == '.':
+                #commands.append(f'<KEY: {repr(buffer)}>')
+                commands.append(SelectKey(buffer))
+                buffer = ''
+                state = DOT
+            else:
+                buffer += i
+
+    # It is possible to be in the KEY state after loop exit
+    if state == KEY:
+        #commands.append(f'<KEY: {repr(buffer)}>')
+        commands.append(SelectKey(buffer))
+
+    return commands
 
 
 def build_query(query_list: list) -> list:
@@ -200,82 +218,9 @@ def main(args):
     print('---------------------')
     print(query)
 
-    DOT, PAREN, SQUARE, BRACE, KEY = 'DOT PAREN SQUARE BRACE KEY'.split()
-    commands = []
-    state = DOT
-    buffer = ''
-    brace_key_list = []
-    query_it = iter(query)
+    commands = parse_query_string(query)
 
-    for i in query_it:
-        if state == DOT:
-            if i == '.':
-                continue
-            elif i == '(':
-                state = PAREN
-            elif i == '[':
-                state = SQUARE
-            elif i == '{':
-                state = BRACE
-            else:
-                buffer += i
-                state = KEY
-
-        elif state == PAREN:
-            if i == ')' and is_valid_python_code(buffer.strip()):
-                commands.append(f'<PAREN: {repr(buffer.strip())}>')
-                buffer = ''
-                state = DOT
-            else:
-                buffer += i
-
-        elif state == SQUARE:
-            stripped = buffer.strip()
-            if i == ']':
-                if (is_valid_python_code(stripped) or stripped == '*'):
-                    commands.append(f'<SQUARE: {repr(stripped)}>')
-                    buffer = ''
-                    state = DOT
-                elif ':' in stripped:
-                    try:
-                        commands.append(f'<SQUARE: {repr(stripped)}>')
-                        buffer = ''
-                        state = DOT
-                    except:
-                        raise Exception('Invalid Syntax')
-                else:
-                    raise Exception('Invalid Syntax')
-            else:
-                buffer += i
-
-        elif state == BRACE:
-            if i in '},:' and is_valid_python_code(buffer.strip()):
-                brace_key_list.append(buffer.strip())
-                buffer = ''
-                if i == ':':
-                    brace_key_list.append(':')
-                elif i == '}':
-                    commands.append(f'<BRACE: {repr(brace_key_list)}>')
-                    brace_key_list.clear()
-                    state = DOT
-            else:
-                buffer += i
-
-        elif state == KEY:
-            if i == '\\':
-                buffer += next(query_it)
-            elif i == '.':
-                commands.append(f'<KEY: {repr(buffer)}>')
-                buffer = ''
-                state = DOT
-            else:
-                buffer += i
-
-    # It is possible to be in the KEY state after loop exit
-    if state == KEY:
-        commands.append(f'<KEY: {repr(buffer)}>')
-
-    print(buffer)
+    print()
     print('[')
     for c in commands:
         print('   ', c)
