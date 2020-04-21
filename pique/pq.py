@@ -68,13 +68,13 @@ from pique.cli import parser
 class Query:
     "Base class for all queries"
 
-class SelectKey(Query):
+class SelectKey(Query):  # some-key | `some-key` | some key
     "Narrow down data"
 
-class BuildObject(Query):
+class BuildObject(Query):  # {}
     "Filter or enhance data"
 
-class Index(Query):
+class Index(Query):  # []
     "Index an object or an array"
 
     def __init__(self, source):
@@ -83,7 +83,7 @@ class Index(Query):
         else:
             index = int(source)
 
-class Expression(Query):
+class Expression(Query):  # ()
     "Query an object using a Python expression"
 
 
@@ -195,30 +195,20 @@ def is_valid_python_code(code: str) -> bool:
 
 
 def main(args):
-    query = '( print( "))))".strip() ) )' #.this.[0].not.valid.python.{}'
-    query = '(a.b.c).(lm().nop()).().[-1].[*].[1:-1].{foo}.{foo,bar}.{"whoa" : {"name":"Pebaz"}}.{foo : 123, bar}'
-
-    # print('Input string:', repr(query))
-    
-    # paren = ''
-
-    # for i in query[1:]:  # We are forcing a PAREN state right now
-    #     if i == ')' and is_valid_python_code(paren.strip()):
-    #         paren = paren.strip()  # Whitespace could be part of a string
-    #         print(paren)  # Switch to the next state.
-    #         # assert <next char> == '.'
-    #     else:
-    #         paren += i
+    #query = '(  print("))))".strip())  ).this.[0].not.valid.python.{}'
+    query = ''.join(sys.argv[1:]) or '(a.b.c).(lm().nop()).().[-1].[*].[1:-1].{foo}.{foo,bar}.{"whoa" : {"name":"Pebaz"}}.{foo : 123, bar}.name.person\.age.`|^^%$#`'
 
     print('---------------------')
     print(query)
 
-    DOT, PAREN, SQUARE, BRACE = 'DOT PAREN SQUARE BRACE'.split()
+    DOT, PAREN, SQUARE, BRACE, KEY = 'DOT PAREN SQUARE BRACE KEY'.split()
     commands = []
     state = DOT
     paren_buf = ''
     brace_key_list = []
-    for i in query:
+    query_it = iter(query)
+
+    for i in query_it:
         #print(state)
         if state == DOT:
             #print('->', DOT)
@@ -231,7 +221,9 @@ def main(args):
             elif i == '{':
                 state = BRACE
             else:
-                raise Exception(f'Should never get here: i = {i}')
+                paren_buf += i
+                state = KEY
+                #raise Exception(f'Should never get here: i = {i}')
 
         elif state == PAREN:
             #print('->', PAREN, paren_buf)
@@ -274,6 +266,19 @@ def main(args):
             else:
                 paren_buf += i
 
+        elif state == KEY:
+            if i == '\\':
+                paren_buf += next(query_it)
+            elif i == '.':
+                commands.append(f'<KEY: {repr(paren_buf)}>')
+                paren_buf = ''
+                state = DOT
+            else:
+                paren_buf += i
+
+    # It is possible to be in the KEY state after loop exit
+    if state == KEY:
+        commands.append(f'<KEY: {repr(paren_buf)}>')
 
     print(paren_buf)
     print('[')
