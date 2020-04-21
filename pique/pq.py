@@ -195,7 +195,6 @@ def is_valid_python_code(code: str) -> bool:
 
 
 def main(args):
-    #query = '(  print("))))".strip())  ).this.[0].not.valid.python.{}'
     query = ''.join(sys.argv[1:]) or '(a.b.c).(lm().nop()).().[-1].[*].[1:-1].{foo}.{foo,bar}.{"whoa" : {"name":"Pebaz"}}.{foo : 123, bar}.name.person\.age.`|^^%$#`'
 
     print('---------------------')
@@ -204,14 +203,12 @@ def main(args):
     DOT, PAREN, SQUARE, BRACE, KEY = 'DOT PAREN SQUARE BRACE KEY'.split()
     commands = []
     state = DOT
-    paren_buf = ''
+    buffer = ''
     brace_key_list = []
     query_it = iter(query)
 
     for i in query_it:
-        #print(state)
         if state == DOT:
-            #print('->', DOT)
             if i == '.':
                 continue
             elif i == '(':
@@ -221,42 +218,40 @@ def main(args):
             elif i == '{':
                 state = BRACE
             else:
-                paren_buf += i
+                buffer += i
                 state = KEY
-                #raise Exception(f'Should never get here: i = {i}')
 
         elif state == PAREN:
-            #print('->', PAREN, paren_buf)
-            if i == ')' and is_valid_python_code(paren_buf.strip()):
-                commands.append(f'<PAREN: {repr(paren_buf.strip())}>')
-                paren_buf = ''
+            if i == ')' and is_valid_python_code(buffer.strip()):
+                commands.append(f'<PAREN: {repr(buffer.strip())}>')
+                buffer = ''
                 state = DOT
             else:
-                paren_buf += i
+                buffer += i
 
         elif state == SQUARE:
-            stripped = paren_buf.strip()
+            stripped = buffer.strip()
             if i == ']':
                 if (is_valid_python_code(stripped) or stripped == '*'):
                     commands.append(f'<SQUARE: {repr(stripped)}>')
-                    paren_buf = ''
+                    buffer = ''
                     state = DOT
                 elif ':' in stripped:
                     try:
                         commands.append(f'<SQUARE: {repr(stripped)}>')
-                        paren_buf = ''
+                        buffer = ''
                         state = DOT
                     except:
                         raise Exception('Invalid Syntax')
                 else:
                     raise Exception('Invalid Syntax')
             else:
-                paren_buf += i
+                buffer += i
 
         elif state == BRACE:
-            if i in '},:' and is_valid_python_code(paren_buf.strip()):
-                brace_key_list.append(paren_buf.strip())
-                paren_buf = ''
+            if i in '},:' and is_valid_python_code(buffer.strip()):
+                brace_key_list.append(buffer.strip())
+                buffer = ''
                 if i == ':':
                     brace_key_list.append(':')
                 elif i == '}':
@@ -264,23 +259,23 @@ def main(args):
                     brace_key_list.clear()
                     state = DOT
             else:
-                paren_buf += i
+                buffer += i
 
         elif state == KEY:
             if i == '\\':
-                paren_buf += next(query_it)
+                buffer += next(query_it)
             elif i == '.':
-                commands.append(f'<KEY: {repr(paren_buf)}>')
-                paren_buf = ''
+                commands.append(f'<KEY: {repr(buffer)}>')
+                buffer = ''
                 state = DOT
             else:
-                paren_buf += i
+                buffer += i
 
     # It is possible to be in the KEY state after loop exit
     if state == KEY:
-        commands.append(f'<KEY: {repr(paren_buf)}>')
+        commands.append(f'<KEY: {repr(buffer)}>')
 
-    print(paren_buf)
+    print(buffer)
     print('[')
     for c in commands:
         print('   ', c)
