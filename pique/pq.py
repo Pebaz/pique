@@ -53,6 +53,7 @@ someobject[slice(*("[1:-3:2]".split(':')))]
 [integer] (Python) {Python, Pyhon : Python}
 
 ( print( "))))" ) ).this.[0].not.valid.python.{}
+'(a.b.c).(lm().nop()).().[-1].[*].[1:-1].{foo}.{foo,bar}.{"whoa" : {"name":"Pebaz"}}.{foo : 123, bar}.name.person\.age.`|^^%$#`'
 """
 
 
@@ -66,11 +67,17 @@ class Query:
     def __init__(self, source):
         self.source = source
 
+    def __call__(self, data):
+        return data
+
     def __str__(self):
         return f'<{self.__class__.__name__}: {repr(self.source)}>'
         
 class SelectKey(Query):  # some-key | `some-key` | some key
     "Narrow down data"
+
+    def __call__(self, data):
+        return data[self.source]
 
 class BuildObject(Query):  # {}
     "Filter or enhance data"
@@ -175,6 +182,9 @@ def parse_query_string(query: str) -> list:
 def process_queries(data: dict, queries: list) -> dict:
     "Performs a list of queries on JSON data."
 
+    for query in queries:
+        data = query(data)
+
     return data
 
 
@@ -232,11 +242,8 @@ def main(args: list=[]) -> int:
 
     cli = parser.parse_args(args or sys.argv[1:])
 
-    #query = ''.join(sys.argv[1:]) or '(a.b.c).(lm().nop()).().[-1].[*].[1:-1].{foo}.{foo,bar}.{"whoa" : {"name":"Pebaz"}}.{foo : 123, bar}.name.person\.age.`|^^%$#`'
-    query = cli.query or 'name'
-
     try:
-        commands = parse_query_string(query)
+        commands = parse_query_string(cli.query)
     except SyntaxError as e:
         print(f'{e.__class__.__name__}: {e}')
         return 1
@@ -247,9 +254,8 @@ def main(args: list=[]) -> int:
         print('Error reading JSON data. Is it formatted properly and complete?')
         return 1
 
-
     print('---------------------')
-    print(query, '\n')
+    print(cli.query, '\n')
     print('[')
     for c in commands:
         print('   ', c)
