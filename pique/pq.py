@@ -57,12 +57,8 @@ someobject[slice(*("[1:-3:2]".split(':')))]
 
 
 # NOTE: CREATE AN assign() FUNCTION THAT CAN ASSIGN WITHIN AN EXPRESSION
-# NOTE: USE A STDLIB FUNCTION TO PARSE EXPRESSIONS FOR PROPER SYNTAX.
-# NOTE: DON'T USE A STATE MACHINE. MAKE PASSES FOR EACH PAREN COMBO
-# NOTE: IF YOU COME TO A DOT AND THE PAREN IS MATCHED, ITS DONE.
 
 import sys, json, ast
-from pique.cli import parser
 
 
 class Query:
@@ -194,9 +190,9 @@ def query(data: dict, query_string: str) -> dict:
 
 def main(args: list=[]) -> int:
     "Run pq to query JSON data from CLI"
-    args = args or sys.argv[1:]
+    from pique.cli import parser
 
-    cli = parser.parse_args(args)
+    cli = parser.parse_args(args or sys.argv[1:])
 
     print(cli)
     print(parse_query_string(cli.query))
@@ -212,15 +208,25 @@ def is_valid_python_code(code: str) -> bool:
         return False
 
 
-def main(args):
-    query = ''.join(sys.argv[1:]) or '(a.b.c).(lm().nop()).().[-1].[*].[1:-1].{foo}.{foo,bar}.{"whoa" : {"name":"Pebaz"}}.{foo : 123, bar}.name.person\.age.`|^^%$#`'
+def main(args: list=[]) -> int:
+    "Run pq to query JSON data from CLI"
 
-    print('---------------------')
-    print(query)
+    if len(sys.argv) == 1 and sys.stdin.isatty():
+        print('Usage: pq <query>')
+        return 0
+
+    from pique.cli import parser
+
+    cli = parser.parse_args(args or sys.argv[1:])
+
+    #query = ''.join(sys.argv[1:]) or '(a.b.c).(lm().nop()).().[-1].[*].[1:-1].{foo}.{foo,bar}.{"whoa" : {"name":"Pebaz"}}.{foo : 123, bar}.name.person\.age.`|^^%$#`'
+    query = cli.query or 'name'
 
     commands = parse_query_string(query)
 
-    print()
+
+    print('---------------------')
+    print(query, '\n')
     print('[')
     for c in commands:
         print('   ', c)
