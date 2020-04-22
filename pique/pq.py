@@ -208,7 +208,7 @@ def is_valid_python_code(code: str) -> bool:
         return False
 
 
-def output_highlighted_json(json_data, color=True, theme=None):
+def output_highlighted_json(json_data, color=True, theme: str=None):
     "Print highlighted JSON to the console except when in a pipe."
 
     formatted_json = json.dumps(json_data, indent=4)
@@ -222,12 +222,22 @@ def output_highlighted_json(json_data, color=True, theme=None):
         from pygments import highlight
         from pygments.lexers import JsonLexer
         from pygments.formatters import Terminal256Formatter
-        from pique.themes import Python3
+        from pique import themes
+
+        theme_list = themes.__dict__
+        theme = theme or 'Python3'
+
+        if (theme not in theme_list or
+            not issubclass(theme_list[theme], themes.Style)
+        ):
+            raise Exception(f'No theme named: {theme}')
+
+        color_theme = theme_list[theme]
 
         formatted_json = highlight(
             formatted_json,
             JsonLexer(),
-            Terminal256Formatter(style=Python3)
+            Terminal256Formatter(style=color_theme)
         )
 
     print(formatted_json)
@@ -256,14 +266,14 @@ def main(args: list=[]) -> int:
         return 1
 
 
-    # print('---------------------')
-    # print(query, '\n')
-    # print('[')
-    # for c in commands:
-    #     print('   ', c)
-    # print(']')
+    print('---------------------')
+    print(query, '\n')
+    print('[')
+    for c in commands:
+        print('   ', c)
+    print(']')
 
-    output_highlighted_json(json_data, cli.nocolor)
+    output_highlighted_json(json_data, cli.nocolor, cli.theme)
 
     return 0
 

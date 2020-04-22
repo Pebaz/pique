@@ -79,5 +79,6 @@ THEMES = [
     Python3,
     IcyKiss,
     Spire,
-    Wing
+    Wing,
+    Cuttlefish
 ]
