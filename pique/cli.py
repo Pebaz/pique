@@ -25,7 +25,7 @@ parser.add_argument(
 
 parser.add_argument(
     '--nocolor',
-    action='store_true',
+    action='store_false',
     help='do not syntax highlight JSON output'
 )
 

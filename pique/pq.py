@@ -208,6 +208,31 @@ def is_valid_python_code(code: str) -> bool:
         return False
 
 
+def output_highlighted_json(json_data, color=True, theme=None):
+    "Print highlighted JSON to the console except when in a pipe."
+
+    formatted_json = json.dumps(json_data, indent=4)
+
+    # If in pipe, don't print console colors, just print text
+    if color and sys.stdout.isatty():
+        if sys.platform == 'win32':
+            import colorama
+            colorama.init()
+
+        from pygments import highlight
+        from pygments.lexers import JsonLexer
+        from pygments.formatters import Terminal256Formatter
+        from pique.themes import Python3
+
+        formatted_json = highlight(
+            formatted_json,
+            JsonLexer(),
+            Terminal256Formatter(style=Python3)
+        )
+
+    print(formatted_json)
+
+
 def main(args: list=[]) -> int:
     "Run pq to query JSON data from CLI"
 
@@ -224,17 +249,27 @@ def main(args: list=[]) -> int:
 
     commands = parse_query_string(query)
 
+    try:
+        json_data = json.loads(sys.stdin.read())
+    except json.JSONDecodeError:
+        print('Error reading JSON data. Is it formatted properly and complete?')
+        return 1
 
-    print('---------------------')
-    print(query, '\n')
-    print('[')
-    for c in commands:
-        print('   ', c)
-    print(']')
+
+    # print('---------------------')
+    # print(query, '\n')
+    # print('[')
+    # for c in commands:
+    #     print('   ', c)
+    # print(']')
+
+    output_highlighted_json(json_data, cli.nocolor)
 
     return 0
 
 
 if __name__ == '__main__':
-    sys.exit(main(sys.argv[1:]))
-
+    try:
+        sys.exit(main(sys.argv[1:]))
+    except KeyboardInterrupt:
+        pass
