@@ -73,14 +73,17 @@ class Query:
     def __str__(self):
         return f'<{self.__class__.__name__}: {repr(self.source)}>'
         
+
 class SelectKey(Query):  # some-key | `some-key` | some key
     "Narrow down data"
 
     def __call__(self, data):
         return data[self.source]
 
+
 class BuildObject(Query):  # {}
     "Filter or enhance data"
+
 
 class Index(Query):  # []
     "Index an object or an array"
@@ -88,11 +91,15 @@ class Index(Query):  # []
     def __init__(self, source):
         Query.__init__(self, source)
         if ':' in source:
-            index = slice(*map(int, source.split(':')))
+            self.index = slice(*map(int, source.split(':')))
         elif source == '*':
-            index = source
+            self.index = source
         else:
-            index = int(source)
+            self.index = int(source)
+    
+    def __call__(self, data):
+        return data[self.index]
+
 
 class Expression(Query):  # ()
     "Query an object using a Python expression"
@@ -175,6 +182,18 @@ def parse_query_string(query: str) -> list:
     # It is possible to be in the KEY state after loop exit
     if state == KEY:
         commands.append(SelectKey(buffer))
+
+    elif state == DOT:
+        "That's ok too"
+
+    # But not any other state
+    else:
+        raise SyntaxError(
+            f'Failed to finish parsing {state} - Incomplete query:\n\n'
+            f'    {query}\n'
+            f'    {" " * (len(query) - len(buffer))}^\n'
+            f'    {" " * (len(query) - len(buffer))}|\n'
+        )
 
     return commands
 
