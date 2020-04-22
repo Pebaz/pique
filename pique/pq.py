@@ -117,7 +117,6 @@ def parse_query_string(query: str) -> list:
 
         elif state == PAREN:
             if i == ')' and is_valid_python_code(buffer.strip()):
-                #commands.append(f'<PAREN: {repr(buffer.strip())}>')
                 commands.append(Expression(buffer.strip()))
                 buffer = ''
                 state = DOT
@@ -128,20 +127,18 @@ def parse_query_string(query: str) -> list:
             stripped = buffer.strip()
             if i == ']':
                 if (is_valid_python_code(stripped) or stripped == '*'):
-                    #commands.append(f'<SQUARE: {repr(stripped)}>')
                     commands.append(Index(stripped))
                     buffer = ''
                     state = DOT
                 elif ':' in stripped:
                     try:
-                        #commands.append(f'<SQUARE: {repr(stripped)}>')
                         commands.append(Index(stripped))
                         buffer = ''
                         state = DOT
                     except:
-                        raise Exception('Invalid Syntax')
+                        raise SyntaxError(stripped)
                 else:
-                    raise Exception('Invalid Syntax')
+                    raise SyntaxError(stripped)
             else:
                 buffer += i
 
@@ -152,7 +149,6 @@ def parse_query_string(query: str) -> list:
                 if i == ':':
                     brace_key_list.append(':')
                 elif i == '}':
-                    #commands.append(f'<BRACE: {repr(brace_key_list)}>')
                     commands.append(BuildObject(brace_key_list[:]))
                     brace_key_list.clear()
                     state = DOT
@@ -163,7 +159,6 @@ def parse_query_string(query: str) -> list:
             if i == '\\':
                 buffer += next(query_it)
             elif i == '.':
-                #commands.append(f'<KEY: {repr(buffer)}>')
                 commands.append(SelectKey(buffer))
                 buffer = ''
                 state = DOT
@@ -172,32 +167,15 @@ def parse_query_string(query: str) -> list:
 
     # It is possible to be in the KEY state after loop exit
     if state == KEY:
-        #commands.append(f'<KEY: {repr(buffer)}>')
         commands.append(SelectKey(buffer))
 
     return commands
 
 
-def build_query(query_list: list) -> list:
-    "Build a list of queries to run on a given data set"
-    return []
+def process_queries(data: dict, queries: list) -> dict:
+    "Performs a list of queries on JSON data."
 
-
-def query(data: dict, query_string: str) -> dict:
-    """
-    """
-
-
-def main(args: list=[]) -> int:
-    "Run pq to query JSON data from CLI"
-    from pique.cli import parser
-
-    cli = parser.parse_args(args or sys.argv[1:])
-
-    print(cli)
-    print(parse_query_string(cli.query))
-
-    return 0
+    return data
 
 
 def is_valid_python_code(code: str) -> bool:
@@ -257,7 +235,11 @@ def main(args: list=[]) -> int:
     #query = ''.join(sys.argv[1:]) or '(a.b.c).(lm().nop()).().[-1].[*].[1:-1].{foo}.{foo,bar}.{"whoa" : {"name":"Pebaz"}}.{foo : 123, bar}.name.person\.age.`|^^%$#`'
     query = cli.query or 'name'
 
-    commands = parse_query_string(query)
+    try:
+        commands = parse_query_string(query)
+    except SyntaxError as e:
+        print(f'{e.__class__.__name__}: {e}')
+        return 1
 
     try:
         json_data = json.loads(sys.stdin.read())
@@ -272,6 +254,12 @@ def main(args: list=[]) -> int:
     for c in commands:
         print('   ', c)
     print(']')
+
+    try:
+        json_data = process_queries(json_data, commands)
+    except Exception as e:
+        print(f'{e.__class__.__name__}: {e}')
+        return 1
 
     output_highlighted_json(json_data, cli.nocolor, cli.theme)
 
