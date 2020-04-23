@@ -253,11 +253,15 @@ def output_highlighted_json(json_data, color=True, theme: str=None):
 def main(args: list=[]) -> int:
     "Run pq to query JSON data from CLI"
 
+    from pique.cli import parser
+
     if len(sys.argv) == 1 and sys.stdin.isatty():
-        print('Usage: pq <query>')
+        parser.print_help()
         return 0
 
-    from pique.cli import parser
+    elif sys.stdin.isatty():
+        print('No JSON data to read from pipe. Exiting.')
+        return 0
 
     cli = parser.parse_args(args or sys.argv[1:])
 

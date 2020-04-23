@@ -9,7 +9,7 @@ __all__ = ['parser']
 
 parser = argparse.ArgumentParser(
     prog='pq',
-    description='Query and transform JSON data on the command line',
+    description='Pique: Query and transform JSON data on the command line',
     epilog=(
         'If this tool is useful to you please give it a star on GitHub: '
         'https://github.com/Pebaz/pique'
