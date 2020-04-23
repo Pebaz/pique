@@ -114,6 +114,22 @@ class Index(Query):  # []
 class Expression(Query):  # ()
     "Query an object using a Python expression"
 
+    def __call__(self, data):
+
+        env = (
+            {name : value for name, value in data.items()}
+            if isinstance(data, dict) else {}
+        )
+
+        env.update({
+            'IT' : data,
+            #'assign' : lambda x, y: print(x, y)
+        })
+
+        data = eval(self.source, env)
+
+        return data
+
 
 def parse_query_string(query: str) -> list:
     "Parses out each query string into its own string"
