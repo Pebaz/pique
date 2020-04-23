@@ -111,7 +111,12 @@ class Index(Query):  # []
     
     def __call__(self, data):
         if self.index == '*':
+            # Syntax cannot handle: [*].name and return a list of names.
+            # TODO(pebaz): Eval everything in the returned list using the rest
+            # of the queries in `process_queries`
+            #return [process_queries(i, queries[1:]) for i in data]
             return list(i for i in data)
+
         else:
             return data[self.index]
 
@@ -127,7 +132,12 @@ class Expression(Query):  # ()
         )
 
         env.update({
-            'IT' : BetterNamespace(**data),
+            'IT' : data
+
+            # TODO(pebaz): MAP EVERY SINGLE BUILTIN METHOD SUCH AS __int__ TO
+            # BETTERNAMESPACE AND HAVE A __to_dict__() METHOD THAT RETURNS A
+            # COPY OF THE ORIGINAL JSON GIVEN AT TIME OF CREATION.
+            #'IT' : BetterNamespace(**data),
             #'assign' : lambda x, y: print(x, y)
         })
 
