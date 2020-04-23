@@ -59,7 +59,12 @@ someobject[slice(*("[1:-3:2]".split(':')))]
 
 # NOTE: CREATE AN assign() FUNCTION THAT CAN ASSIGN WITHIN AN EXPRESSION
 
-import sys, json, ast
+import sys, json, ast, types
+
+
+class BetterNamespace(types.SimpleNamespace):
+    def __getitem__(self, key):
+        return getattr(self, key)
 
 
 class Query:
@@ -122,11 +127,14 @@ class Expression(Query):  # ()
         )
 
         env.update({
-            'IT' : data,
+            'IT' : BetterNamespace(**data),
             #'assign' : lambda x, y: print(x, y)
         })
 
         data = eval(self.source, env)
+
+        if isinstance(data, BetterNamespace):
+            data = data.__dict__
 
         return data
 
