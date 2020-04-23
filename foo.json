@@ -7,5 +7,6 @@
         "key1" : "val1",
         "key2" : 2,
         "key3" : null
-    }
+    },
+    "odd$key?" : 818
 }

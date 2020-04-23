@@ -78,8 +78,15 @@ class SelectKey(Query):  # some-key | `some-key` | some key
     "Narrow down data"
 
     def __call__(self, data):
-        return data[self.source]
-
+        if self.source not in data and isinstance(self.source, str):
+            if self.source.lstrip('+-').isdigit():
+                raise TypeError(
+                    f'Cannot index object with int: {self.source}. '
+                    f'Use array syntax instead: [{self.source}]'
+                )
+        else:
+            return data[self.source]
+            
 
 class BuildObject(Query):  # {}
     "Filter or enhance data"
@@ -98,7 +105,10 @@ class Index(Query):  # []
             self.index = int(source)
     
     def __call__(self, data):
-        return data[self.index]
+        if self.index == '*':
+            return list(i for i in data)
+        else:
+            return data[self.index]
 
 
 class Expression(Query):  # ()
@@ -277,6 +287,7 @@ def main(args: list=[]) -> int:
         print('Error reading JSON data. Is it formatted properly and complete?')
         return 1
 
+    # if cli.debug:
     print('---------------------')
     print(cli.query, '\n')
     print('[')
