@@ -54,6 +54,20 @@ someobject[slice(*("[1:-3:2]".split(':')))]
 
 ( print( "))))" ) ).this.[0].not.valid.python.{}
 '(a.b.c).(lm().nop()).().[-1].[*].[1:-1].{foo}.{foo,bar}.{"whoa" : {"name":"Pebaz"}}.{foo : 123, bar}.name.person\.age.`|^^%$#`'
+
+
+
+
+         Fanout    Join
+           |        |
+           V        V
+Functions.[*].Name.[!].(len(IT))
+
+
+
+
+
+
 """
 
 
@@ -72,7 +86,7 @@ class Query:
     def __init__(self, source):
         self.source = source
 
-    def __call__(self, data):
+    def __call__(self, data, queries):
         return data
 
     def __str__(self):
@@ -82,13 +96,16 @@ class Query:
 class SelectKey(Query):  # some-key | `some-key` | some key
     "Narrow down data"
 
-    def __call__(self, data):
-        if self.source not in data and isinstance(self.source, str):
-            if self.source.lstrip('+-').isdigit():
-                raise TypeError(
-                    f'Cannot index object with int: {self.source}. '
-                    f'Use array syntax instead: [{self.source}]'
-                )
+    def __call__(self, data, queries):
+        if (
+            self.source not in data and
+            isinstance(self.source, str) and
+            self.source.lstrip('+-').isdigit()
+        ):
+            raise TypeError(
+                f'Cannot index object with int: {self.source}. '
+                f'Use array syntax instead: [{self.source}]'
+            )
         else:
             return data[self.source]
             
@@ -104,18 +121,18 @@ class Index(Query):  # []
         Query.__init__(self, source)
         if ':' in source:
             self.index = slice(*map(int, source.split(':')))
-        elif source == '*':
+        elif source in '*!':
             self.index = source
         else:
             self.index = int(source)
     
-    def __call__(self, data):
+    def __call__(self, data, queries):
         if self.index == '*':
             # Syntax cannot handle: [*].name and return a list of names.
             # TODO(pebaz): Eval everything in the returned list using the rest
             # of the queries in `process_queries`
-            #return [process_queries(i, queries[1:]) for i in data]
-            return list(i for i in data)
+            return [process_queries(i, queries) for i in data]
+            #return [i for i in data]
 
         else:
             return data[self.index]
@@ -124,7 +141,7 @@ class Index(Query):  # []
 class Expression(Query):  # ()
     "Query an object using a Python expression"
 
-    def __call__(self, data):
+    def __call__(self, data, queries):
 
         env = (
             {name : value for name, value in data.items()}
@@ -184,7 +201,7 @@ def parse_query_string(query: str) -> list:
         elif state == SQUARE:
             stripped = buffer.strip()
             if i == ']':
-                if (is_valid_python_code(stripped) or stripped == '*'):
+                if (is_valid_python_code(stripped) or stripped in '*!'):
                     commands.append(Index(stripped))
                     buffer = ''
                     state = DOT
@@ -245,8 +262,21 @@ def parse_query_string(query: str) -> list:
 def process_queries(data: dict, queries: list) -> dict:
     "Performs a list of queries on JSON data."
 
+    fanout = False
+
     for query in queries:
-        data = query(data)
+        print(query)
+        if isinstance(query, Index):
+            if query.source == '*':
+                fanout = True
+                data = query(data, queries[2:])
+            elif query.source == '!':
+                fanout = False
+                continue
+            else:
+                continue
+
+        if not fanout: data = query(data, queries[2:])
 
     return data
 
@@ -299,13 +329,13 @@ def main(args: list=[]) -> int:
 
     from pique.cli import parser
 
-    if len(sys.argv) == 1 and sys.stdin.isatty():
-        parser.print_help()
-        return 0
+    # if len(sys.argv) == 1 and sys.stdin.isatty():
+    #     parser.print_help()
+    #     return 0
 
-    elif sys.stdin.isatty():
-        print('No JSON data to read from pipe. Exiting.')
-        return 0
+    # elif sys.stdin.isatty():
+    #     print('No JSON data to read from pipe. Exiting.')
+    #     return 0
 
     cli = parser.parse_args(args or sys.argv[1:])
 
@@ -315,11 +345,13 @@ def main(args: list=[]) -> int:
         print(f'{e.__class__.__name__}: {e}')
         return 1
 
-    try:
-        json_data = json.loads(sys.stdin.read())
-    except json.JSONDecodeError:
-        print('Error reading JSON data. Is it formatted properly and complete?')
-        return 1
+    json_data = json.loads(open('fanout.json').read())
+
+    # try:
+    #     json_data = json.loads(sys.stdin.read())
+    # except json.JSONDecodeError:
+    #     print('Error reading JSON data. Is it formatted properly and complete?')
+    #     return 1
 
     # if cli.debug:
     print('---------------------')
@@ -329,11 +361,11 @@ def main(args: list=[]) -> int:
         print('   ', c)
     print(']')
 
-    try:
-        json_data = process_queries(json_data, commands)
-    except Exception as e:
-        print(f'{e.__class__.__name__}: {e}')
-        return 1
+    # try:
+    json_data = process_queries(json_data, commands)
+    # except Exception as e:
+    #     print(f'{e.__class__.__name__}: {e}')
+    #     return 1
 
     output_highlighted_json(json_data, cli.nocolor, cli.theme)
 

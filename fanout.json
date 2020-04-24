@@ -1,0 +1,29 @@
+{
+    "functions": [
+        {
+            "name": "function-1",
+            "runtime": "Python",
+            "size": 23212
+        },
+        {
+            "name": "function-2",
+            "runtime": "Go",
+            "size": 9872
+        },
+        {
+            "name": "function-3",
+            "runtime": "Rust",
+            "size": 725754
+        },
+        {
+            "name": "function-4",
+            "runtime": "Wing",
+            "size": 5351
+        },
+        {
+            "name": "function-5",
+            "runtime": "Nim",
+            "size": 36789
+        }
+    ]
+}
