@@ -89,6 +89,9 @@ class Query:
     def __call__(self, data, queries):
         return data
 
+    def __repr__(self):
+        return str(self)
+
     def __str__(self):
         return f'<{self.__class__.__name__}: {repr(self.source)}>'
         
@@ -128,11 +131,16 @@ class Index(Query):  # []
     
     def __call__(self, data, queries):
         if self.index == '*':
+            print('*' * 30)
+            print(queries)
             # Syntax cannot handle: [*].name and return a list of names.
             # TODO(pebaz): Eval everything in the returned list using the rest
             # of the queries in `process_queries`
             return [process_queries(i, queries) for i in data]
             #return [i for i in data]
+
+        elif self.index == '!':
+            return data
 
         else:
             return data[self.index]
@@ -156,6 +164,7 @@ class Expression(Query):  # ()
             # COPY OF THE ORIGINAL JSON GIVEN AT TIME OF CREATION.
             #'IT' : BetterNamespace(**data),
             #'assign' : lambda x, y: print(x, y)
+            # 'keys' : lambda x: x.keys()
         })
 
         data = eval(self.source, env)
@@ -259,24 +268,60 @@ def parse_query_string(query: str) -> list:
     return commands
 
 
-def process_queries(data: dict, queries: list) -> dict:
+def process_queries2(data: dict, queries: list) -> dict:
     "Performs a list of queries on JSON data."
+
+    print(data)
 
     fanout = False
 
-    for query in queries:
-        print(query)
+    index = 0
+    for i in range(len(queries)):
+        query = queries[index]
+
         if isinstance(query, Index):
             if query.source == '*':
                 fanout = True
-                data = query(data, queries[2:])
+                data = query(data, queries[index + 1:])
+                while index < len(queries) and isinstance(query, Index) and query.source != '!':
+                    index += 1
+                if index == len(queries):
+                    return data
+
             elif query.source == '!':
                 fanout = False
+                index += 1
                 continue
+
+
+        if not fanout: data = query(data, queries[2:])
+
+        index += 1
+
+    return data
+
+
+def process_queries(data, queries):
+    fanout = 0
+
+    for i in range(len(queries)):
+        query = queries[i]
+
+        if fanout:
+            if i == fanout:
+                fanout = 0
             else:
                 continue
 
-        if not fanout: data = query(data, queries[2:])
+        if isinstance(query, Index) and query.source == '*':
+            for j in range(len(queries)):
+                if isinstance(query, Index) and query.source == '!':
+                    break
+            data = query(data, queries[i + 1:j])
+            fanout = j
+
+        else:
+            data = query(data, queries)
 
     return data
 
