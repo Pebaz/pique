@@ -110,7 +110,14 @@ class SelectKey(Query):  # some-key | `some-key` | some key
                 f'Use array syntax instead: [{self.source}]'
             )
         else:
-            return data[self.source]
+            try:
+                return data[self.source]
+            except Exception as e:
+                print(e)
+                print('Source:', self.source)
+                print('queries:', queries)
+                print('data:', data)
+                sys.exit()
             
 
 class BuildObject(Query):  # {}
@@ -133,6 +140,7 @@ class Index(Query):  # []
         if self.index == '*':
             print('*' * 30)
             print(queries)
+            print('*' * 30)
             # Syntax cannot handle: [*].name and return a list of names.
             # TODO(pebaz): Eval everything in the returned list using the rest
             # of the queries in `process_queries`
@@ -308,17 +316,22 @@ def process_queries(data, queries):
         query = queries[i]
 
         if fanout:
+            print(fanout, i)
             if i == fanout:
                 fanout = 0
             else:
+                fanout -= 1
                 continue
 
         if isinstance(query, Index) and query.source == '*':
-            for j in range(len(queries)):
-                if isinstance(query, Index) and query.source == '!':
+            q = []
+            for j in range(i + 1, len(queries) - 1):
+                if isinstance(queries[j], Index) and queries[j].source == '!':
                     break
-            data = query(data, queries[i + 1:j])
-            fanout = j
+                q.append(queries[i])
+            print('Queries:', q)
+            data = query(data, q)
+            #fanout = j + add
 
         else:
             data = query(data, queries)
