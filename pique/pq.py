@@ -86,7 +86,7 @@ class Query:
     def __init__(self, source):
         self.source = source
 
-    def __call__(self, data, queries):
+    def __call__(self, data):
         return data
 
     def __repr__(self):
@@ -99,7 +99,7 @@ class Query:
 class SelectKey(Query):  # some-key | `some-key` | some key
     "Narrow down data"
 
-    def __call__(self, data, queries):
+    def __call__(self, data):
         if (
             self.source not in data and
             isinstance(self.source, str) and
@@ -115,7 +115,6 @@ class SelectKey(Query):  # some-key | `some-key` | some key
             except Exception as e:
                 print(e)
                 print('Source:', self.source)
-                print('queries:', queries)
                 print('data:', data)
                 sys.exit()
             
@@ -136,7 +135,7 @@ class Index(Query):  # []
         else:
             self.index = int(source)
     
-    def __call__(self, data, queries):
+    def __call__(self, data):
         if self.index == '*':
             print('*' * 30)
             print(queries)
@@ -157,7 +156,7 @@ class Index(Query):  # []
 class Expression(Query):  # ()
     "Query an object using a Python expression"
 
-    def __call__(self, data, queries):
+    def __call__(self, data):
 
         env = (
             {name : value for name, value in data.items()}
@@ -350,6 +349,7 @@ def form_query_groups(queries):
     for query in queries:
         # TODO(pebaz): Implement Fanout type
         if isinstance(query, Index) and query.source in '*!':
+            groups.append({'*' : 'FANOUT', '!' : 'JOIN'}[query.source])
             groups.append([])
 
         else:
@@ -358,11 +358,24 @@ def form_query_groups(queries):
     return groups
 
 
-def process_queries(data, queries):
-    for i, query in enumerate(queries):
+def run_query_group(data, queries):
+    print(queries)
+    for query in queries:
+        data = query(data)
+    return data
 
-        if isinstance(query, SelectKey):
-            print(query)
+
+def process_queries(data, groups):
+    from pprint import pprint; pprint(groups)
+
+    for i, group in enumerate(groups):
+        if group == 'FANOUT':
+            data = [run_query_group(e, groups[i + 1]) for e in data]
+            break
+        elif group == 'JOIN':
+            ...
+        else:
+            data = run_query_group(data, group)
 
     return data
 
@@ -447,7 +460,7 @@ def main(args: list=[]) -> int:
     print(']')
 
     # try:
-    json_data = process_queries(json_data, commands)
+    json_data = process_queries(json_data, form_query_groups(commands))
     # except Exception as e:
     #     print(f'{e.__class__.__name__}: {e}')
     #     return 1
@@ -458,12 +471,10 @@ def main(args: list=[]) -> int:
 
 
 if __name__ == '__main__':
-    # try:
-    #     sys.exit(main(sys.argv[1:]))
-    # except KeyboardInterrupt:
-    #     pass
+    try:
+        sys.exit(main(sys.argv[1:]))
+    except KeyboardInterrupt:
+        pass
 
-    print('pique')
-
-    from pprint import pprint
-    pprint(form_query_groups(parse_query_string('select1.select2.[*].select3.select4.[!].select5.select6.[*].select7.select8')))
+    #from pprint import pprint
+    #pprint(form_query_groups(parse_query_string('select1.select2.[*].select3.select4.[*].select5.select6.[!].select7.select8')))
