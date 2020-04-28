@@ -339,6 +339,33 @@ def process_queries(data, queries):
     return data
 
 
+def form_query_groups(queries):
+    groups, group = [[]], 0
+
+    # 1. select.[*].select.[*]
+    # 2. select.[*].select.[*].select.[!]
+    # 3. functions.[*].nodes.[*].select.[!].[!].expression
+    # 4. functions.[*].nodes.[*].select.[!].[!].expression.[*].select
+
+    for query in queries:
+        # TODO(pebaz): Implement Fanout type
+        if isinstance(query, Index) and query.source in '*!':
+            groups.append([])
+
+        else:
+            groups[-1].append(query)
+
+    return groups
+
+
+def process_queries(data, queries):
+    for i, query in enumerate(queries):
+
+        if isinstance(query, SelectKey):
+            print(query)
+
+    return data
+
 def is_valid_python_code(code: str) -> bool:
     try:
         ast.parse(code)
@@ -431,7 +458,12 @@ def main(args: list=[]) -> int:
 
 
 if __name__ == '__main__':
-    try:
-        sys.exit(main(sys.argv[1:]))
-    except KeyboardInterrupt:
-        pass
+    # try:
+    #     sys.exit(main(sys.argv[1:]))
+    # except KeyboardInterrupt:
+    #     pass
+
+    print('pique')
+
+    from pprint import pprint
+    pprint(form_query_groups(parse_query_string('select1.select2.[*].select3.select4.[!].select5.select6.[*].select7.select8')))
