@@ -369,11 +369,78 @@ def process_queries(data, groups):
     from pprint import pprint; pprint(groups)
 
     for i, group in enumerate(groups):
-        if group == 'FANOUT':
+        if group in ('FANOUT', 'JOIN'):
             data = [run_query_group(e, groups[i + 1]) for e in data]
             break
-        elif group == 'JOIN':
-            ...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            # TODO(pebaz): NO MORE GROUPS ARE BEING EVALUATED DUE TO BREAKING
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         else:
             data = run_query_group(data, group)
 
