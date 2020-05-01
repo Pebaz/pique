@@ -366,7 +366,9 @@ def run_query_group(data, queries):
 
 
 def process_queries(data, groups):
+    print('->')
     from pprint import pprint; pprint(groups)
+    print('<-')
 
     cont = False
 
@@ -374,76 +376,18 @@ def process_queries(data, groups):
         if cont:
             cont = False
             continue
-        if group in ('FANOUT', 'JOIN'):
+
+        if group == 'FANOUT':
             data = [run_query_group(e, groups[i + 1]) for e in data]
             cont = True
             continue
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
             # TODO(pebaz): NO MORE GROUPS ARE BEING EVALUATED DUE TO BREAKING
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        elif group == 'JOIN':
+            data = run_query_group(data, groups[i + 1])
+            cont = True
+            continue
 
         else:
             data = run_query_group(data, group)
