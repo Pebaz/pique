@@ -171,6 +171,14 @@ class Expression(Query):  # ()
         return data
 
 
+class Fanout(Query):  # [*]
+    pass
+
+
+class Join(Query):  # [!]
+    pass
+
+
 def parse_query_string(query: str) -> list:
     "Parses out each query string into its own string"
 
@@ -207,7 +215,12 @@ def parse_query_string(query: str) -> list:
             stripped = buffer.strip()
             if i == ']':
                 if (is_valid_python_code(stripped) or stripped in '*!'):
-                    commands.append(Index(stripped))
+                    if stripped == '*':
+                        commands.append(Fanout(stripped))
+                    elif stripped == '!':
+                        commands.append(Join(stripped))
+                    else:
+                        commands.append(Index(stripped))
                     buffer = ''
                     state = DOT
                 elif ':' in stripped:
@@ -268,10 +281,8 @@ def form_query_groups(queries):
     groups, group = [[]], 0
 
     for query in queries:
-        # TODO(pebaz): Implement Fanout type
-        if isinstance(query, Index) and query.source in '*!':
-            groups.append({'*' : 'FANOUT', '!' : 'JOIN'}[query.source])
-            groups.append([])
+        if isinstance(query, Fanout) or isinstance(query, Join):
+            groups.extend([query, []])
 
         else:
             groups[-1].append(query)
@@ -289,12 +300,12 @@ def process_queries(data, groups):
     groups_it = iter(groups)
 
     for group in groups_it:
-        if group == 'FANOUT':
+        if isinstance(group, Fanout):
             next_group = next(groups_it)
             data = [run_query_group(item, next_group) for item in data]
             continue
 
-        elif group == 'JOIN':
+        elif isinstance(group, Join):
             data = run_query_group(data, next(groups_it))
             continue
         
