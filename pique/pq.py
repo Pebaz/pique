@@ -126,6 +126,78 @@ class BuildObject(Query):  # {}
     "Filter or enhance data"
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+    def ___________________________________________():
+        ...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 class Index(Query):  # []
     "Index an object or an array"
 
