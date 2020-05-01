@@ -113,9 +113,12 @@ class SelectKey(Query):  # some-key | `some-key` | some key
             try:
                 return data[self.source]
             except Exception as e:
-                print(e)
-                print('Source:', self.source)
-                print('data:', data)
+                message = getattr(e, 'message', None)
+
+                if message:
+                    print(f'{e.__class__.__name__}: {message}')
+                else:
+                    print(repr(e))
                 sys.exit()
             
 
@@ -136,21 +139,7 @@ class Index(Query):  # []
             self.index = int(source)
     
     def __call__(self, data):
-        if self.index == '*':
-            print('*' * 30)
-            print(queries)
-            print('*' * 30)
-            # Syntax cannot handle: [*].name and return a list of names.
-            # TODO(pebaz): Eval everything in the returned list using the rest
-            # of the queries in `process_queries`
-            return [process_queries(i, queries) for i in data]
-            #return [i for i in data]
-
-        elif self.index == '!':
-            return data
-
-        else:
-            return data[self.index]
+        return data[self.index]
 
 
 class Expression(Query):  # ()
@@ -275,76 +264,8 @@ def parse_query_string(query: str) -> list:
     return commands
 
 
-def process_queries2(data: dict, queries: list) -> dict:
-    "Performs a list of queries on JSON data."
-
-    print(data)
-
-    fanout = False
-
-    index = 0
-    for i in range(len(queries)):
-        query = queries[index]
-
-        if isinstance(query, Index):
-            if query.source == '*':
-                fanout = True
-                data = query(data, queries[index + 1:])
-                while index < len(queries) and isinstance(query, Index) and query.source != '!':
-                    index += 1
-                if index == len(queries):
-                    return data
-
-            elif query.source == '!':
-                fanout = False
-                index += 1
-                continue
-
-
-        if not fanout: data = query(data, queries[2:])
-
-        index += 1
-
-    return data
-
-
-def process_queries(data, queries):
-    fanout = 0
-
-    for i in range(len(queries)):
-        query = queries[i]
-
-        if fanout:
-            print(fanout, i)
-            if i == fanout:
-                fanout = 0
-            else:
-                fanout -= 1
-                continue
-
-        if isinstance(query, Index) and query.source == '*':
-            q = []
-            for j in range(i + 1, len(queries) - 1):
-                if isinstance(queries[j], Index) and queries[j].source == '!':
-                    break
-                q.append(queries[i])
-            print('Queries:', q)
-            data = query(data, q)
-            #fanout = j + add
-
-        else:
-            data = query(data, queries)
-
-    return data
-
-
 def form_query_groups(queries):
     groups, group = [[]], 0
-
-    # 1. select.[*].select.[*]
-    # 2. select.[*].select.[*].select.[!]
-    # 3. functions.[*].nodes.[*].select.[!].[!].expression
-    # 4. functions.[*].nodes.[*].select.[!].[!].expression.[*].select
 
     for query in queries:
         # TODO(pebaz): Implement Fanout type
@@ -359,40 +280,29 @@ def form_query_groups(queries):
 
 
 def run_query_group(data, queries):
-    print(queries)
     for query in queries:
         data = query(data)
     return data
 
 
 def process_queries(data, groups):
-    print('->')
-    from pprint import pprint; pprint(groups)
-    print('<-')
+    groups_it = iter(groups)
 
-    cont = False
-
-    for i, group in enumerate(groups):
-        if cont:
-            cont = False
-            continue
-
+    for group in groups_it:
         if group == 'FANOUT':
-            data = [run_query_group(e, groups[i + 1]) for e in data]
-            cont = True
+            next_group = next(groups_it)
+            data = [run_query_group(item, next_group) for item in data]
             continue
-
-            # TODO(pebaz): NO MORE GROUPS ARE BEING EVALUATED DUE TO BREAKING
 
         elif group == 'JOIN':
-            data = run_query_group(data, groups[i + 1])
-            cont = True
+            data = run_query_group(data, next(groups_it))
             continue
-
+        
         else:
             data = run_query_group(data, group)
 
     return data
+
 
 def is_valid_python_code(code: str) -> bool:
     try:
@@ -442,13 +352,13 @@ def main(args: list=[]) -> int:
 
     from pique.cli import parser
 
-    # if len(sys.argv) == 1 and sys.stdin.isatty():
-    #     parser.print_help()
-    #     return 0
+    if len(sys.argv) == 1 and sys.stdin.isatty():
+        parser.print_help()
+        return 0
 
-    # elif sys.stdin.isatty():
-    #     print('No JSON data to read from pipe. Exiting.')
-    #     return 0
+    elif sys.stdin.isatty():
+        print('No JSON data to read from pipe. Exiting.')
+        return 0
 
     cli = parser.parse_args(args or sys.argv[1:])
 
@@ -460,11 +370,11 @@ def main(args: list=[]) -> int:
 
     json_data = json.loads(open('fanout.json').read())
 
-    # try:
-    #     json_data = json.loads(sys.stdin.read())
-    # except json.JSONDecodeError:
-    #     print('Error reading JSON data. Is it formatted properly and complete?')
-    #     return 1
+    try:
+        json_data = json.loads(sys.stdin.read())
+    except json.JSONDecodeError:
+        print('Error reading JSON data. Is it formatted properly and complete?')
+        return 1
 
     # if cli.debug:
     print('---------------------')
@@ -474,11 +384,11 @@ def main(args: list=[]) -> int:
         print('   ', c)
     print(']')
 
-    # try:
-    json_data = process_queries(json_data, form_query_groups(commands))
-    # except Exception as e:
-    #     print(f'{e.__class__.__name__}: {e}')
-    #     return 1
+    try:
+        json_data = process_queries(json_data, form_query_groups(commands))
+    except Exception as e:
+        print(f'{e.__class__.__name__}: {e}')
+        return 1
 
     output_highlighted_json(json_data, cli.nocolor, cli.theme)
 
@@ -490,6 +400,3 @@ if __name__ == '__main__':
         sys.exit(main(sys.argv[1:]))
     except KeyboardInterrupt:
         pass
-
-    #from pprint import pprint
-    #pprint(form_query_groups(parse_query_string('select1.select2.[*].select3.select4.[*].select5.select6.[!].select7.select8')))
