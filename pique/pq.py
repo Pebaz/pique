@@ -128,6 +128,8 @@ class BuildObject(Query):  # {}
     def __init__(self, source):
         Query.__init__(self, source)
 
+        print(source)
+
         source_queries = source[:]
         indices = []
         
@@ -139,11 +141,18 @@ class BuildObject(Query):  # {}
                 indices.append(source_queries.pop(0))
         indices.extend(source_queries)
 
-        print(indices)
+        self.indices = indices
 
 
     def __call__(self, data):
-        return data
+        result = {}
+        for query in self.indices:
+            if len(query) == 2:
+                key, val = query
+                result[Expression(key)(data)] = Expression(val)(data)
+            else:
+                result[query] = Expression(query)(data)
+        return result
 
 
 
