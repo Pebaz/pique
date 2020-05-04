@@ -127,9 +127,6 @@ class BuildObject(Query):  # {}
 
     def __init__(self, source):
         Query.__init__(self, source)
-
-        print(source)
-
         source_queries = source[:]
         indices = []
         
@@ -139,10 +136,9 @@ class BuildObject(Query):  # {}
                 indices.append((key, val))
             else:
                 indices.append(source_queries.pop(0))
+
         indices.extend(source_queries)
-
         self.indices = indices
-
 
     def __call__(self, data):
         result = {}
@@ -153,7 +149,6 @@ class BuildObject(Query):  # {}
             else:
                 result[query] = Expression(query)(data)
         return result
-
 
 
 class Index(Query):  # []
@@ -176,37 +171,22 @@ class Expression(Query):  # ()
     "Query an object using a Python expression"
 
     def __call__(self, data):
-
         env = (
             {name : value for name, value in data.items()}
             if isinstance(data, dict) else {}
         )
 
-        env.update({
-            'IT' : data
-
-            # TODO(pebaz): MAP EVERY SINGLE BUILTIN METHOD SUCH AS __int__ TO
-            # BETTERNAMESPACE AND HAVE A __to_dict__() METHOD THAT RETURNS A
-            # COPY OF THE ORIGINAL JSON GIVEN AT TIME OF CREATION.
-            #'IT' : BetterNamespace(**data),
-            #'assign' : lambda x, y: print(x, y)
-            # 'keys' : lambda x: x.keys()
-        })
-
+        env.update(IT=data)
         data = eval(self.source, env)
-
-        if isinstance(data, BetterNamespace):
-            data = data.__dict__
-
         return data
 
 
 class Fanout(Query):  # [*]
-    pass
+    "Process each element in the current item with the next query set."
 
 
 class Join(Query):  # [!]
-    pass
+    "Join a previously entered Fanout command into a List."
 
 
 def parse_query_string(query: str) -> list:
@@ -417,13 +397,15 @@ def main(args: list=[]) -> int:
         print('Error reading JSON data. Is it formatted properly and complete?')
         return 1
 
-    # if cli.debug:
-    print('---------------------')
-    print(cli.query, '\n')
-    print('[')
-    for c in commands:
-        print('   ', c)
-    print(']')
+    if cli.debug:
+        print('---------------------')
+        print(' Query string:\n')
+        print('    ', cli.query, '\n')
+        print('[')
+        for c in commands:
+            print('   ', c)
+        print(']\n')
+        print('Output:\n')
 
     try:
         json_data = process_queries(json_data, form_query_groups(commands))

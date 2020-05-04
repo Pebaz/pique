@@ -42,3 +42,8 @@ parser.add_argument(
     help='show query syntax tutorial'
 )
 
+parser.add_argument(
+    '--debug',
+    action='store_true',
+    help='show parsed queries and other debug info'
+)

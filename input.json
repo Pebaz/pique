@@ -17,6 +17,7 @@
             "inventory" : [
                 "apple",
                 "sandwich",
+                "butter",
                 "grapplinghook"
             ]
         },
@@ -33,6 +34,8 @@
             "inventory" : [
                 "apple",
                 "jam",
+                "bread",
+                "basket",
                 "jelly"
             ]
         },
