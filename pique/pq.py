@@ -125,76 +125,25 @@ class SelectKey(Query):  # some-key | `some-key` | some key
 class BuildObject(Query):  # {}
     "Filter or enhance data"
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    def ___________________________________________():
-        ...
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    def __init__(self, source):
+        Query.__init__(self, source)
+
+        source_queries = source[:]
+        indices = []
+        
+        while len(source_queries) > 2:
+            if source_queries[1] == ':':
+                key, _, val = [source_queries.pop(0) for i in range(3)]
+                indices.append((key, val))
+            else:
+                indices.append(source_queries.pop(0))
+        indices.extend(source_queries)
+
+        print(indices)
+
+
+    def __call__(self, data):
+        return data
 
 
 
