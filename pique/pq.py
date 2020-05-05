@@ -73,7 +73,7 @@ Functions.[*].Name.[!].(len(IT))
 
 # NOTE: CREATE AN assign() FUNCTION THAT CAN ASSIGN WITHIN AN EXPRESSION
 
-import sys, json, ast, types
+import sys, json, ast, types, traceback
 
 
 class Query:
@@ -180,6 +180,10 @@ class Fanout(Query):  # [*]
     "Process each element in the current item with the next query set."
 
 
+class Select(Query):  # [-]
+    "Remove any value from array that doesn't evaluate to True"
+
+
 class Join(Query):  # [!]
     "Join a previously entered Fanout command into a List."
 
@@ -219,11 +223,13 @@ def parse_query_string(query: str) -> list:
         elif state == SQUARE:
             stripped = buffer.strip()
             if i == ']':
-                if (is_valid_python_code(stripped) or stripped in '*!'):
+                if (is_valid_python_code(stripped) or stripped in '*!-'):
                     if stripped == '*':
                         commands.append(Fanout(stripped))
                     elif stripped == '!':
                         commands.append(Join(stripped))
+                    elif stripped == '-':
+                        commands.append(Select(stripped))
                     else:
                         commands.append(Index(stripped))
                     buffer = ''
@@ -286,7 +292,7 @@ def form_query_groups(queries):
     groups, group = [[]], 0
 
     for query in queries:
-        if isinstance(query, Fanout) or isinstance(query, Join):
+        if isinstance(query, (Fanout, Join, Select)):
             groups.extend([query, []])
 
         else:
@@ -312,6 +318,11 @@ def process_queries(data, groups):
 
         elif isinstance(group, Join):
             data = run_query_group(data, next(groups_it))
+            continue
+
+        elif isinstance(group, Select):
+            next_group, result = next(groups_it), []
+            data = [item for item in data if run_query_group(item, next_group)]
             continue
         
         else:
@@ -403,7 +414,10 @@ def main(args: list=[]) -> int:
     try:
         json_data = process_queries(json_data, form_query_groups(commands))
     except Exception as e:
-        print(f'{e.__class__.__name__}: {e}')
+        if cli.debug:
+            traceback.print_exc()
+        else:
+            print(f'{e.__class__.__name__}: {e}')
         return 1
 
     output_highlighted_json(json_data, cli.nocolor, cli.theme)
