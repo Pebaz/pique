@@ -76,11 +76,6 @@ Functions.[*].Name.[!].(len(IT))
 import sys, json, ast, types
 
 
-class BetterNamespace(types.SimpleNamespace):
-    def __getitem__(self, key):
-        return getattr(self, key)
-
-
 class Query:
     "Base class for all queries"
     def __init__(self, source):
@@ -388,8 +383,6 @@ def main(args: list=[]) -> int:
     except SyntaxError as e:
         print(f'{e.__class__.__name__}: {e}')
         return 1
-
-    json_data = json.loads(open('fanout.json').read())
 
     try:
         json_data = json.loads(sys.stdin.read())

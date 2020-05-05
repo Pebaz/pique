@@ -7,10 +7,10 @@ setup(
 	description='Process JSON from the CLI easily',
 	author='http://github.com/Pebaz',
 	url='http://github.com/Pebaz/pique',
-    py_modules=['poc', 'pique.themes'],
+    packages=['pique'],
     entry_points={
 		'console_scripts' : [
-			'pq=poc:main'
+			'pq=pique.pq:main'
 		]
 	}
 )
