@@ -5,3 +5,10 @@ Rust version of jq with easier to remember syntax.
 Rust so it **runs at the speed of light**.
 
 "Maximum expressiveness whilst providing a familiar syntax.
+
+```
+         Fanout    Join
+           |        |
+           V        V
+Functions.[*].Name.[!].(len(IT))
+```

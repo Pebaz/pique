@@ -89,6 +89,12 @@ class Query:
 
     def __str__(self):
         return f'<{self.__class__.__name__}: {repr(self.source)}>'
+
+    def __eq__(self, other):
+        return self.source == other.source
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
         
 
 class SelectKey(Query):  # some-key | `some-key` | some key
@@ -299,6 +305,7 @@ def form_query_groups(queries):
             groups[-1].append(query)
 
     return groups
+
 
 
 def run_query_group(data, queries):
