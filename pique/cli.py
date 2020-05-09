@@ -31,7 +31,6 @@ parser.add_argument(
 
 parser.add_argument(
     '--theme',
-    default='Python3',
     help='syntax theme for JSON output',
     choices=[i.__name__ for i in THEMES]
 )

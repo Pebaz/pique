@@ -95,14 +95,16 @@ if DOTFILE.exists():
         spec = importlib.util.spec_from_loader(
             'plugins', importlib.machinery.SourceFileLoader('plugins', str(DOTFILE))
         )
-        SETTINGS = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(SETTINGS)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        if hasattr(module, '__settings__'):
+            SETTINGS = module.__settings__
         PLUGINS = {
-            key : val for key, val in SETTINGS.__dict__.items()
+            key : val for key, val in module.__dict__.items()
             if not key.startswith('__') and not key.endswith('__')
         }
-    except:
-        ...
+    except Exception as e:
+        print('Error loading dotfile:', e)
 
 
 class Query:
@@ -458,7 +460,10 @@ def main(args: list=[]) -> int:
             print(f'{e.__class__.__name__}: {e}')
         return 1
 
-    output_highlighted_json(json_data, cli.nocolor, cli.theme)
+    # NOTE(pebaz): `theme` can be None. `output_highlighted_json` uses Python3.
+    theme = cli.theme or SETTINGS.get('theme')
+
+    output_highlighted_json(json_data, cli.nocolor, theme)
 
     return 0
 
