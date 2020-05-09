@@ -382,7 +382,7 @@ def is_valid_python_code(code: str) -> bool:
 def output_highlighted_json(json_data, color=True, theme: str=None):
     "Print highlighted JSON to the console except when in a pipe."
 
-    formatted_json = json.dumps(json_data, indent=4)
+    formatted_json = json.dumps(json_data, indent=SETTINGS.get('indent', 4))
 
     # If in pipe, don't print console colors, just print text
     if color and sys.stdout.isatty():
