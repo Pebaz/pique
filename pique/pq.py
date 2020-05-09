@@ -65,9 +65,15 @@ Functions.[*].Name.[!].(len(IT))
 
 
 
+BUG: array.[:-1]
+BUG: {boolean,odd$key?}
 
 
-
+* Unit Tests
+* Dotfile Support
+* Markdown Docs `docs/`
+* Create `release` branch
+* GitHub Actions Pipeline
 """
 
 
@@ -95,6 +101,9 @@ class Query:
 
     def __ne__(self, other):
         return not self.__eq__(other)
+
+    def __hash__(self):
+        return hash(self.source)
         
 
 class SelectKey(Query):  # some-key | `some-key` | some key
@@ -305,7 +314,6 @@ def form_query_groups(queries):
             groups[-1].append(query)
 
     return groups
-
 
 
 def run_query_group(data, queries):
