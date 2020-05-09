@@ -71,6 +71,9 @@ BUG: {boolean,odd$key?}
 
 * Unit Tests
 * Dotfile Support
+    * JSON indentation
+    * Default theme
+    * Plugins
 * Markdown Docs `docs/`
 * Create `release` branch
 * GitHub Actions Pipeline
@@ -79,7 +82,27 @@ BUG: {boolean,odd$key?}
 
 # NOTE: CREATE AN assign() FUNCTION THAT CAN ASSIGN WITHIN AN EXPRESSION
 
-import sys, json, ast, types, traceback
+import sys, json, ast, types, traceback, pathlib
+import importlib.util
+
+
+DOTFILE = pathlib.Path('~/.pq').expanduser().absolute()
+SETTINGS = {}
+PLUGINS = {}
+
+if DOTFILE.exists():
+    try:
+        spec = importlib.util.spec_from_loader(
+            'plugins', importlib.machinery.SourceFileLoader('plugins', str(DOTFILE))
+        )
+        SETTINGS = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(SETTINGS)
+        PLUGINS = {
+            key : val for key, val in SETTINGS.__dict__.items()
+            if not key.startswith('__') and not key.endswith('__')
+        }
+    except:
+        ...
 
 
 class Query:
@@ -185,7 +208,7 @@ class Expression(Query):  # ()
             {name : value for name, value in data.items()}
             if isinstance(data, dict) else {}
         )
-
+        env.update(PLUGINS)
         env.update(IT=data)
         data = eval(self.source, env)
         return data
