@@ -65,8 +65,6 @@ Functions.[*].Name.[!].(len(IT))
 
 
 
-BUG: array.[:-1]
-BUG: {boolean,odd$key?}
 
 
 * Unit Tests
@@ -77,6 +75,9 @@ BUG: {boolean,odd$key?}
 * Markdown Docs `docs/`
 * Create `release` branch
 * GitHub Actions Pipeline
+* Fix bugs
+    BUG: array.[:-1]
+    BUG: {boolean,odd$key?}
 """
 
 
