@@ -3,10 +3,9 @@
 name: CI
 
 on:
-  push:
-    branches: [ release ]
-  pull_request:
-    branches: [ release ]
+  release:
+    types:
+      - created
 
 jobs:
 
@@ -37,6 +36,7 @@ jobs:
 
   upload-to-pypi:
     runs-on: ubuntu-latest
+    depends-on: test-all
     steps:
       - uses: actions/checkout@v2
       
