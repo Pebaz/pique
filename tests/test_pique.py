@@ -30,3 +30,17 @@ def test_is_valid_python_code():
     assert is_valid_python_code('print(asdf)')
     assert is_valid_python_code('print(...)')
     assert is_valid_python_code('print({"name":"Pebaz"})')
+    
+
+def test_pique_as_lib():
+    gold1 = {'FuncA', 'FuncB', 'FuncC', 'FuncD'}
+    data = {
+        'Functions' : [
+            {'FunctionName' : i, 'CodeSize' : 1024} for i in gold1
+        ]
+    }
+
+    for name in query(data, "Functions.[*].FunctionName"):
+        assert name in gold1
+
+    assert query(data, "Functions.[*].FunctionName") == list(gold1)

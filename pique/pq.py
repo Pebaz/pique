@@ -417,6 +417,13 @@ def output_highlighted_json(json_data, color=True, theme: str=None):
     print(formatted_json)
 
 
+def query(json_data, query_string):
+    "Convenience function to use Pique like a library."
+    return process_queries(
+        json_data, form_query_groups(parse_query_string(query_string))
+    )
+
+
 def main(args: list=[]) -> int:
     "Run pq to query JSON data from CLI"
 
