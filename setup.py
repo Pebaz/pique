@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
 	name='python-pique',
-	version='0.0.2',
+	version='0.1.0',
 	license="MIT",
 	description='Process JSON from the CLI easily',
 	author='http://github.com/Pebaz',

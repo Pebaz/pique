@@ -8,7 +8,6 @@ on:
 jobs:
   upload-to-pypi:
     runs-on: ubuntu-latest
-    depends-on: test-all
     steps:
       - uses: actions/checkout@v2
       
