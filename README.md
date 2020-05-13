@@ -68,13 +68,13 @@ $ cat foo.json | pq 'obj.arr.[2]'
 
 In between each dot `.` character you can place any of these query types:
 
- * SelectKey: `keyname`
- * Index: `[123]`
- * BuildObject: `{name,age,"address":address.upper(),phone}`
- * Expression: `(i for i in range(10))`
- * Fanout: `[*]`
- * Join: `[!]`
- * Select: `[-]`
+ * [SelectKey](#SelectKey-key1.key2.key3): `keyname`
+ * [Index](#Index-4): `[123]`
+ * [BuildObject](#BuildObject-name,age): `{name,age,"address":address.upper(),phone}`
+ * [Expression](#Expression-sorted(IT)): `(i for i in range(10))`
+ * [Fanout](#Fanout-*-&-Join): `[*]`
+ * [Join](#Fanout-*-&-Join): `[!]`
+ * [Select](#Select): `[-]`
 
 ### SelectKey `key1.key2.key3`
 
