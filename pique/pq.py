@@ -77,6 +77,8 @@ Functions.[*].Name.[!].(len(IT))
 * GitHub Actions Pipeline
 * Fix bugs
     BUG: array.[:-1]
+    BUG: $ echo '[1, 2, 3, 4, 5]' | pq '[::2]'
+    BUG: $ echo '{"name":"pebaz"}' | pq '{"named"[:-1]}' (should allow arbitrary Python code)
     BUG: {boolean,odd$key?}
 """
 

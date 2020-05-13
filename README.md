@@ -37,19 +37,109 @@ $ cat example.json | pq
 $ echo '{ "name" : "Pebaz" }' | pq name  # "Pebaz"
 ```
 
-
-
 ## Tutorial
 
-There are only 7 query types in Pique:
+To query JSON using Pique, you can use a query string provided on the command
+line. A query string is comprised of 4 unique query syntax types that are very
+similar to their Python equivalents:
+
+ * Key selection: `any characters between the dot . characters`
+ * Brackets: `[]`
+ * Braces: `{}`
+ * Parentheses: `()`
+
+You can form sequences of these queries by separating them by a dot `.`
+character. For instance, the following is an example query that results in the string:
+"foo".
+
+```bash
+$ cat foo.json
+{
+    "obj" : {
+        "arr" : [
+            "baz", "bar", "foo"
+        ]
+    }
+}
+
+$ cat foo.json | pq 'obj.arr.[2]'
+"foo"
+```
+
+In between each dot `.` character you can place any of these query types:
 
  * SelectKey: `keyname`
  * Index: `[123]`
- * BuildObject: `{name,age,"address":address.uppper(),phone}`
+ * BuildObject: `{name,age,"address":address.upper(),phone}`
  * Expression: `(i for i in range(10))`
  * Fanout: `[*]`
  * Join: `[!]`
  * Select: `[-]`
+
+### SelectKey `key1.key2.key3`
+
+The SelectKey query is the most basic type of query. It allows you to drilldown
+on a given JSON structure and can be used to restrict the data that the next
+query in the sequence can work with.
+
+### Index `[4]`
+
+You can use the Index query to index JSON arrays. Within the brackes, you can
+put any valid Python slice. Here are a few examples:
+
+```python
+$ echo '[1, 2, 3, 4, 5]' | pq '[0]'
+1
+$ echo '[1, 2, 3, 4, 5]' | pq '[-1]'
+5
+$ echo '[1, 2, 3, 4, 5]' | pq '[2:4]'
+[3, 4]
+$ echo '[1, 2, 3, 4, 5]' | pq '[::2]'
+[1, 3, 5]
+$ echo '[1, 2, 3, 4, 5]' | pq '[0:-3:2]'
+[1]
+```
+
+### BuildObject `{name,age}`
+
+The BuildObject query is very powerful and can be used to create entirely new
+JSON structures. The syntax of this query is exactly the same as Python but for
+a couple small differences. Below is an example BuildObject query that shows
+that you can put any valid Python code between the commas `,`. 
+
+```python
+{ KEY-NAME, KEY-NAME, PYTHON-CODE : PYTHON-CODE, KEY-NAME }
+```
+
+Within the commas `,`, you can put Python Dictionary-like key-value pairs and
+each key and each value can be any valid Python expression. It should be noted
+that the code between the commas `,` that is not a key-value pair must be the
+name of a given key or an expression that evaluates to the string value of a
+given key.
+
+### Expression `(sorted(IT))`
+
+For Pique, the Expression query is the star of the show. It is the reason why
+Pique exists in the first place. It allows you to use any valid Python
+expression to transform or process a JSON structure.
+
+Here are a few examples:
+
+```python
+$ echo '[1, 2, 3, 4, 5]' | pq '(2048)'
+2048
+$ echo '[1, 2, 3, 4, 5]' | pq '([2, 1, 3, 1, 5])'
+[2, 1, 3, 1, 5]
+$ echo '[1, 2, 3, 4, 5]' | pq '(IT[2])'
+3
+$ echo '[1, 2, 3, 4, 5]' | pq '(len(IT))'
+5
+$ echo '[1, 2, 3, 4, 5]' | pq '([i ** i for i in IT])'
+[1, 4, 27, 256, 3125]
+```
+
+As you can see, you can use any valid Python expression to transform the data as
+you see fit.
 
 ### Fanout `[*]` & Join `[!]`
 
@@ -85,5 +175,41 @@ queries using the filtered set of data:
 
 ```bash
 $ aws lambda list-functions | pq 'Functions.[-].(Timeout > 3).[!].(len(IT))`
+```
+
+## Dotfile Support
+
+Pique supports the use of a dotfile in your home directory named `.pq`.
+
+This file is a valid Python file that can contain any function or class that
+you would like to be available in the environment where expressions are
+evaluated. For instance, if you define a function `foo()` in your `.pq` file, it
+will be available in any query you make from the CLI:
+
+```bash
+$ cat example.json | pq 'key1.key2.([foo(i) for i in IT])'
+```
+
+You can also define the variable `__settings__` that can contain the keys:
+
+ * `theme`: str
+ * `indent`: integer
+
+An example Pique dotfile may look like this:
+
+```python
+# This will be included in the eval env as `chain`:
+from itertools import chain
+
+__settings__ = {
+	'theme' : 'Python3',
+	'indent' : 4
+}
+
+def foo(data, index):
+	return data[index] ** 10
+
+def something():
+	return 'asdf'
 ```
 
