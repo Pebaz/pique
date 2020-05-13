@@ -3,9 +3,14 @@
 name: CI
 
 on:
-  release:
-    types:
-      - created
+  push:
+    branches: [ release ]
+  pull_request:
+    branches: [ release ]
+
+  # release:
+  #   types:
+  #     - created
 
 jobs:
 
