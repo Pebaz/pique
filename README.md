@@ -1,10 +1,29 @@
-# pique
-Rust version of jq with easier to remember syntax.
+# Pique
 
-> ... both the JSON processor and the Python scripting runtime are written in
-Rust so it **runs at the speed of light**.
+> Query JSON from the CLI using Python syntax
 
-"Maximum expressiveness whilst providing a familiar syntax.
+## What is Pique
+
+Pique is a command line JSON query and processing tool similar to
+[JQ](https://stedolan.github.io/jq/) and [JMESPath](https://jmespath.org/).
+
+However, while these other applications are highly useful, they introduce yet
+another query language to learn. With Pique, you can use any valid Python
+expression in your queries, bringing the full power of Python to your CLI.
+
+
+## Installation
+
+```bash
+$ pip install python-pique
+```
+
+## Usage
+
+```bash
+$ echo '{ "name" : "Pebaz" }' | pq name
+-> Pebaz
+```
 
 ```
          Fanout    Join
@@ -12,3 +31,17 @@ Rust so it **runs at the speed of light**.
            V        V
 Functions.[*].Name.[!].(len(IT))
 ```
+
+## Tutorial
+
+There are only 7 query types in Pique:
+
+ * SelectKey: `keyname`
+ * Index: `[123]`
+ * BuildObject: `{name,age,"address":address.uppper(),phone}`
+ * Expression: `(i for i in range(10))`
+ * Fanout: `[*]`
+ * Join: `[!]`
+ * Select: `[-]`
+
+

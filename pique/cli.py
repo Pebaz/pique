@@ -2,7 +2,7 @@
 https://realpython.com/command-line-interfaces-python-argparse/#setting-the-name-of-the-program
 """
 
-import argparse
+import argparse, pathlib
 from pique.themes import THEMES
 
 __all__ = ['parser']
@@ -14,6 +14,12 @@ parser = argparse.ArgumentParser(
         'If this tool is useful to you please give it a star on GitHub: '
         'https://github.com/Pebaz/pique'
     )
+)
+
+(parser.version,) = (
+    'pique ' + l.split('=')[-1][1:-2] for l in
+    (pathlib.Path(__file__).parent.parent / 'setup.py').read_text().splitlines()
+    if 'version' in l
 )
 
 parser.add_argument(
@@ -45,4 +51,9 @@ parser.add_argument(
     '--debug',
     action='store_true',
     help='show parsed queries and other debug info'
+)
+
+parser.add_argument(
+    '-v', '--version',
+    action='version'
 )
