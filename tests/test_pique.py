@@ -1,5 +1,7 @@
 from pique.pq import *
 
+fanout = json.loads(open('fanout.json').read())
+
 def test_parser():
     assert parse_query_string('foo.bar.baz') == [
         SelectKey('foo'), SelectKey('bar'), SelectKey('baz')
@@ -100,15 +102,25 @@ def test_query_expression():
     assert query(data, '(len(two))') == 10
     assert query(data, '(sum(two))') == 45
     assert query(data, 'three.(four + four)') == 8
+    assert query(data, '(sorted(two, reverse=True))') == list(range(9, -1, -1))
 
 
 def test_query_fanout():
-    ...
+    assert query(fanout, 'functions.[*].(len(IT))') == [4, 4, 4, 4, 4]
+    assert query(fanout, 'functions.[*].nodes.(sum(IT))') == [
+        684, 250, 323, 342, 11111363
+    ]
 
 
 def test_query_join():
-    ...
+    # This is not redundant, a [!] is implied at the end of every query string
+    assert query(fanout, 'functions.[*].(len(IT))') == [4, 4, 4, 4, 4]
+    assert query(fanout, 'functions.[*].nodes.(sum(IT)).[!].(sum(IT))') == (
+        11112962
+    )
 
 
 def test_query_select():
-    ...
+    assert query([0, -1, 23, False, None, 'a'], '[-].[!].(len(IT))') == 3
+    assert query(fanout, 'functions.[-].(size > 10_000).[!].(len(IT))') == 3
+
