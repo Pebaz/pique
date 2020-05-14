@@ -46,6 +46,30 @@ def test_pique_as_lib():
     assert query(data, "Functions.[*].FunctionName") == list(gold1)
 
 
+def test_query_select_key():
+    data = {
+        'string' : 'Hello World!',
+        'integer' : 1024,
+        'array' : [1, 2],
+        'boolean' : True,
+        'object' : {
+            'key1' : 'val1',
+            'key2' : 2,
+            'key3' : None
+        },
+        'odd$key?' : 818
+    }
+
+    assert query(data, '') == data
+    assert query(data, 'string') == 'Hello World!'
+    assert query(data, 'integer') == 1024
+    assert query(data, 'array') == [1, 2]
+    assert query(data, 'boolean')
+    assert query(data, 'object') == dict(key1='val1', key2=2, key3=None)
+    assert query(data, 'odd$key?') == 818
+    assert query(data, 'object.key1') == 'val1'
+
+
 def test_query_index():
     data = [1, 2, 3, 4, 5, 6, 7]
     assert query(data, '[:]') == data
@@ -68,3 +92,23 @@ def test_query_build_object():
     assert query(data, '{"odd$key?",string}') == gold
     assert query(data, '{"odd$key" + "?",string}') == gold
     assert query(data, '{"odd$key" + "-?"[array[0]],string}') == gold
+
+
+def test_query_expression():
+    data = {'one' : 1, 'two' : [*range(10)], 'three' : {'four' : 4}}
+    assert query(data, '(one + one == 2)')
+    assert query(data, '(len(two))') == 10
+    assert query(data, '(sum(two))') == 45
+    assert query(data, 'three.(four + four)') == 8
+
+
+def test_query_fanout():
+    ...
+
+
+def test_query_join():
+    ...
+
+
+def test_query_select():
+    ...
