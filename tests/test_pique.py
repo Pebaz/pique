@@ -46,9 +46,25 @@ def test_pique_as_lib():
     assert query(data, "Functions.[*].FunctionName") == list(gold1)
 
 
+def test_query_index():
+    data = [1, 2, 3, 4, 5, 6, 7]
+    assert query(data, '[:]') == data
+    assert query(data, '[::]') == data
+    assert query(data, '[0]') == 1
+    assert query(data, '[-1]') == 7
+    assert query(data, '[1:3]') == [2, 3]
+    assert query(data, '[:3]') == [1, 2, 3]
+    assert query(data, '[:-1]') == [1, 2, 3, 4, 5, 6]
+    assert query(data, '[::1]') == data
+    assert query(data, '[1:-1:1]') == [2, 3, 4, 5, 6]
+    assert query(data, '[1:-1:2]') == [2, 4, 6]
+    assert query(data, '[::2]') == [1, 3, 5, 7]
+    assert query(data, '[1:-1:-2]') == []
 
 
-################################################################################
-# Do this next:
-# bat foo.json | python3 -m pique.pq '{"odd$key" + "-?"[array[0]],string}' --debug
-################################################################################
+def test_query_build_object():
+    data = {'array' : [1, 2], 'odd$key?' : 818, 'string' : 'Hello World!'}
+    gold = {'odd$key?' : 818, 'string' : 'Hello World!'}
+    assert query(data, '{"odd$key?",string}') == gold
+    assert query(data, '{"odd$key" + "?",string}') == gold
+    assert query(data, '{"odd$key" + "-?"[array[0]],string}') == gold
