@@ -353,6 +353,8 @@ def query(json_data, query_string):
 def main(args: list=[]) -> int:
     "Run pq to query JSON data from CLI"
 
+    args = args or sys.argv[1:]
+
     from pique.cli import parser
 
     if len(args) == 0 and sys.stdin.isatty():

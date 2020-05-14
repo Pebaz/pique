@@ -10,6 +10,7 @@ setup(
 	author='http://github.com/Pebaz',
 	url='http://github.com/Pebaz/pique',
     packages=['pique'],
+	py_modules=['setup'],
     entry_points={
 		'console_scripts' : [
 			'pq=pique.pq:main'
