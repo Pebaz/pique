@@ -53,7 +53,7 @@ someobject[slice(*("[1:-3:2]".split(':')))]
 [integer] (Python) {Python, Pyhon : Python}
 
 ( print( "))))" ) ).this.[0].not.valid.python.{}
-'(a.b.c).(lm().nop()).().[-1].[*].[1:-1].{foo}.{foo,bar}.{"whoa" : {"name":"Pebaz"}}.{foo : 123, bar}.name.person\.age.`|^^%$#`'
+'(a.b.c).(lm().nop()).().[-1].[*].[1:-1].{foo}.{foo,bar}.{"whoa" : {"name":"Pebaz"}}.{foo : 123, bar}.name.person\\.age.`|^^%$#`'
 
 
 
@@ -195,7 +195,9 @@ class Index(Query):  # []
     def __init__(self, source):
         Query.__init__(self, source)
         if ':' in source:
-            self.index = slice(*map(int, source.split(':')))
+            self.index = slice(
+                *[int(i) if i else None for i in source.split(':')]
+            )
         elif source in '*!':
             self.index = source
         else:
@@ -282,7 +284,8 @@ def parse_query_string(query: str) -> list:
                         commands.append(Index(stripped))
                         buffer = ''
                         state = DOT
-                    except:
+                    except Exception as e:
+                        print('----->', e)
                         raise SyntaxError(stripped)
                 else:
                     raise SyntaxError(stripped)
