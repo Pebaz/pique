@@ -44,3 +44,11 @@ def test_pique_as_lib():
         assert name in gold1
 
     assert query(data, "Functions.[*].FunctionName") == list(gold1)
+
+
+
+
+################################################################################
+# Do this next:
+# bat foo.json | python3 -m pique.pq '{"odd$key" + "-?"[array[0]],string}' --debug
+################################################################################

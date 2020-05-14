@@ -77,7 +77,6 @@ Functions.[*].Name.[!].(len(IT))
 * GitHub Actions Pipeline
 * Fix bugs
     BUG: array.[:-1]
-    BUG: $ echo '[1, 2, 3, 4, 5]' | pq '[::2]'
     BUG: $ echo '{"name":"pebaz"}' | pq '{"named"[:-1]}' (should allow arbitrary Python code)
     BUG: {boolean,odd$key?}
 """
@@ -181,11 +180,20 @@ class BuildObject(Query):  # {}
     def __call__(self, data):
         result = {}
         for query in self.indices:
-            if len(query) == 2:
+            if query.isidentifier():
+                result[query] = data[query]
+
+            elif isinstance(query, tuple):
                 key, val = query
                 result[Expression(key)(data)] = Expression(val)(data)
+
             else:
-                result[query] = Expression(query)(data)
+                evaluated = Expression(query)(data)
+                if evaluated in data:
+                    result[evaluated] = data[evaluated]
+                else:
+                    result[evaluated] = evaluated
+
         return result
 
 
@@ -217,6 +225,7 @@ class Expression(Query):  # ()
         )
         env.update(PLUGINS)
         env.update(IT=data)
+
         data = eval(self.source, env)
         return data
 
