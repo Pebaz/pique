@@ -29,6 +29,13 @@ Pique is great for:
 $ pip install python-pique
 ```
 
+Pique works on:
+
+* Windows
+* MacOS
+* Linux
+* Any platform that Python3 runs on
+
 ## Usage
 
 ```bash
