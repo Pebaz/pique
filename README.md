@@ -147,9 +147,9 @@ The Fanout query allows you to perform a set of queries on each element in an
 array. Typical usage of Fanout can look like this:
 
 ```bash
-                                           Fanout    Join
-                                             |        |
-                                             V        V
+                                           Fanout            Join
+                                             |                |
+                                             V                V
 $ aws lambda list-functions | pq 'Functions.[*].FunctionName.[!].(len(IT))'
 ```
 
