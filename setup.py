@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
 	name='python-pique',
-	version='0.1.0',
+	version='1.0.0',
 	license="MIT",
 	description='Query JSON from the CLI using Python syntax',
 	long_description=open('README.md').read(),
