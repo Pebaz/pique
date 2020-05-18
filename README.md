@@ -202,14 +202,14 @@ An example Pique dotfile may look like this:
 from itertools import chain
 
 __settings__ = {
-	'theme' : 'Python3',
-	'indent' : 4
+    'theme' : 'Python3',
+    'indent' : 4
 }
 
 def foo(data, index):
-	return data[index] ** 10
+    return data[index] ** 10
 
 def something():
-	return 'asdf'
+    return 'asdf'
 ```
 
