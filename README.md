@@ -1,3 +1,7 @@
+<p align=center>
+    <img src="misc/Pique.png" alt="Pique Logo" width=60%>
+</p>
+
 # Pique
 
 > Query JSON from the CLI using Python syntax
@@ -112,7 +116,7 @@ $ echo '[1, 2, 3, 4, 5]' | pq '[0:-3:2]'
 The BuildObject query is very powerful and can be used to create entirely new
 JSON structures. The syntax of this query is exactly the same as Python but for
 a couple small differences. Below is an example BuildObject query that shows
-that you can put any valid Python code between the commas `,`. 
+that you can put any valid Python code between the commas `,`.
 
 ```python
 { KEY-NAME, KEY-NAME, PYTHON-CODE : PYTHON-CODE, KEY-NAME }
